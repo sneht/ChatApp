@@ -1,28 +1,75 @@
-import React, { useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   RiEyeFill,
   RiFacebookCircleFill,
   RiGoogleFill,
   RiHeartFill,
+  RiEyeOffFill,
 } from "react-icons/ri";
 import { Link } from "react-router-dom";
+// import { EndPointing } from "../../helper";
+// import axios from "axios";
+import { postUserData } from "../../components/auth.request";
+import jwtDecode from "jwt-decode";
+// import GoogleButton from 'react-google-button'
 
 const Login = () => {
-  localStorage.clear()
+  localStorage.clear();
   const navigate = useNavigate();
 
-  const [userName, setUserName] = useState();
-  const [userNameError, setUserNameError] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState();
   const [passwordError, setPasswordError] = useState("");
+  const [message, setMessage] = useState("");
+  const [loader, setloader] = useState(false);
+  const [passManage, setPassManage] = useState(false);
+  const [user, setUser] = useState({});
 
+  const handleCallbackResponse = async (response) => {
+    // console.log("Encoded JWT ID token: " + response.credential);
+    var userObject = jwtDecode(response.credential);
+    console.log(userObject);
+    setUser(userObject);
+    document.getElementById("signInDiv").hidden = true;
+    let email = userObject.email;
+    let password = userObject.sub;
+    const resp = await postUserData(email, password);
+    if (resp) {
+      console.log(resp);
+      setloader(false);
+      setMessage(resp.message);
+      const token = resp.data.data.token;
+      localStorage.setItem("accessToken", JSON.stringify(token));
+      navigate("/");
+    }
+  };
+
+  useEffect(() => {
+    /* global google */
+    google.accounts.id.initialize({
+      client_id:
+        "720571755003-bpacvgmam44os9dn53o656rdec8sr53i.apps.googleusercontent.com",
+      callback: handleCallbackResponse,
+    });
+    google.accounts.id.renderButton(document.getElementById("signInDiv"), {
+      theme: "outline",
+      size: "medium",
+    });
+  }, []);
+
+  function handleSignOut(e) {
+    setUser({});
+    document.getElementById("signInDiv").hidden = false;
+  }
   const validation = () => {
     let userIsValid = true;
-    if (userName) {
-      setUserNameError("");
-    } else if (!userName) {
-      setUserNameError("Please enter user name");
+    if (email) {
+      setEmailError("");
+    } else if (!email) {
+      setEmailError("Please enter user name");
       userIsValid = false;
     }
     if (password) {
@@ -34,13 +81,27 @@ const Login = () => {
     return userIsValid;
   };
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (validation()) {
-      localStorage.setItem("userName", JSON.stringify(userName));
-      navigate("/");
+      setloader(true);
+      const response = await postUserData(email, password);
+      if (response) {
+        setloader(false);
+        setMessage(response.message);
+        const token = response.data.data.token;
+        localStorage.setItem("accessToken", JSON.stringify(token));
+        navigate("/");
+      }
     } else {
       console.log("Please fill up form");
+    }
+  };
+  const passManagehandle = () => {
+    if (passManage === false) {
+      setPassManage(true);
+    } else {
+      setPassManage(false);
     }
   };
   return (
@@ -63,29 +124,27 @@ const Login = () => {
                         <form onSubmit={submit}>
                           <div className="mb-3">
                             <label htmlFor="username" className="form-label">
-                              Username
+                              Email
                             </label>
                             <input
-                              type="text"
+                              type="email"
                               className="form-control"
                               id="username"
-                              placeholder="Enter username"
-                              value={userName}
+                              placeholder="Enter Email"
+                              value={email}
                               onChange={(e) => [
-                                setUserName(e.target.value),
-                                setUserNameError(""),
+                                setEmail(e.target.value),
+                                setEmailError(""),
+                                setMessage(""),
                               ]}
                             />
-                            <div className="error">{userNameError}</div>
+                            <div className="error">{emailError}</div>
                           </div>
                           <div className="mb-3">
                             <div className="float-end">
-                              <a
-                                href="auth-recoverpw.html"
-                                className="text-muted"
-                              >
+                              <Link to="" className="text-muted">
                                 Forgot password?
-                              </a>
+                              </Link>
                             </div>
                             <label
                               htmlFor="userpassword"
@@ -95,7 +154,7 @@ const Login = () => {
                             </label>
                             <div className="position-relative auth-pass-inputgroup mb-3">
                               <input
-                                type="password"
+                                type={passManage ? "text" : "password"}
                                 className="form-control pe-5"
                                 placeholder="Enter Password"
                                 id="password-input"
@@ -103,14 +162,16 @@ const Login = () => {
                                 onChange={(e) => [
                                   setPassword(e.target.value),
                                   setPasswordError(""),
+                                  setMessage(""),
                                 ]}
                               />
                               <button
                                 className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
                                 type="button"
                                 id="password-addon"
+                                onClick={() => passManagehandle()}
                               >
-                                <RiEyeFill />
+                                {passManage ? <RiEyeFill /> : <RiEyeOffFill />}
                               </button>
                               <div className="error">{passwordError}</div>
                             </div>
@@ -128,13 +189,20 @@ const Login = () => {
                               Remember me
                             </label>
                           </div> */}
+                          <div className="error">{message}</div>
                           <div className="text-center mt-4">
                             <button
                               className="btn btn-primary w-100"
                               type="submit"
                               onSubmit={() => submit()}
                             >
-                              Log In
+                              {loader ? (
+                                <div className="spinner-border" role="status">
+                                  <span className="sr-only"></span>
+                                </div>
+                              ) : (
+                                "Log In"
+                              )}
                             </button>
                           </div>
                           <div className="mt-4 text-center">
@@ -167,6 +235,12 @@ const Login = () => {
                                     Google
                                   </button>
                                 </div>
+                                <div id="signInDiv"></div>
+                                {Object.keys(user).length !== 0 && (
+                                  <button onClick={(e) => handleSignOut(e)}>
+                                    Sign Out{" "}
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>

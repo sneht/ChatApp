@@ -14,7 +14,7 @@
   --bs-sidebar-shadow: 0 2px 4px rgba(52, 58, 64, 0.12);
   --bs-modal-bg: #fff;
   --bs-border-color: #e6ebf5;
-  /* --bs-auth-bg: url("../images/auth-img.jpg"); */
+  --bs-auth-bg: url("../public/images/auth-img.jpg");
   --bs-input-bg: #fff;
   --bs-input-border: #dbe2f1;
   --bs-input-focus-border: #e6ebf5;

@@ -65,9 +65,9 @@ const SideBar = () => {
               role="tab"
             >
               <RiDiscussLine />
-              <span className="badge bg-danger fs-11 rounded-pill sidenav-item-badge">
-                9
-              </span>
+              {/* <span className="badge bg-danger fs-11 rounded-pill sidenav-item-badge">
+                
+              </span> */}
             </a>
           </li>
           <li className="nav-item">
@@ -152,7 +152,7 @@ const SideBar = () => {
               <div className="dropdown-divider" />
               <Link
                 className="dropdown-item d-flex align-items-center justify-content-between"
-                to="/login"
+                to="/logout"
                 onClick={() => logOut()}
               >
                 Log out <i className="bx bx-log-out-circle text-muted ms-1" />

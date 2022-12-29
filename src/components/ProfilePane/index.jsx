@@ -1,6 +1,8 @@
 import React from "react";
 import { RiPhoneLine, RiMessage2Line, RiMapPin2Line } from "react-icons/ri";
 const ProfilePane = () => {
+  // const userName = localStorage.getItem("userName");
+  // var newUsername = userName.replace(/"/g, "");
   return (
     <div
       className="tab-pane"
@@ -73,7 +75,7 @@ const ProfilePane = () => {
               alt=""
             />
           </div>
-          <h5 className="fs-17 mb-1 text-truncate">Dushane Daniel</h5>
+          <h5 className="fs-17 mb-1  text-capitalize">Sneh</h5>
           <p className="text-muted fs-14 text-truncate mb-0">
             Front end Developer
           </p>
@@ -93,7 +95,7 @@ const ProfilePane = () => {
                 <i className="bx bx-user align-middle text-muted fs-19" />
               </div>
               <div className="flex-grow-1">
-                <p className="mb-0">Dushane Daniel</p>
+                <p className="mb-0 text-capitalize">Sneh</p>
               </div>
             </div>
             <div className="d-flex py-2 align-items-center">
@@ -424,7 +426,7 @@ const ProfilePane = () => {
         </div>
         {/* end user-profile-desc */}
       </div>
-      {/* End profile content */}
+      
     </div>
   );
 };

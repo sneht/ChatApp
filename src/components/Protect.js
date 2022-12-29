@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, Outlet } from "react-router";
 
 const useAuth = () => {
-  const Token = localStorage.getItem("userName");
+  const Token = localStorage.getItem("accessToken");
   if (Token) {
     const user = { loggedIn: true };
     return user && user.loggedIn;

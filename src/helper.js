@@ -1,0 +1,1 @@
+ export const EndPointing="https://chatappbackend.cyclic.app/";

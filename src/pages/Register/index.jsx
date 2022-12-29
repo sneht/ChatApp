@@ -1,24 +1,86 @@
-import React, { useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useEffect } from "react";
 import {
   RiFacebookCircleFill,
   RiGoogleFill,
   RiHeartFill,
+  RiEyeFill,
+  RiEyeOffFill,
 } from "react-icons/ri";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router";
+// import { EndPointing } from "../../helper";
+// import axios from "axios";
+import { postRegisterData } from "../../components/auth.request";
+import { postGoogleRegisterData } from "../../components/auth.request";
+
+import jwtDecode from "jwt-decode";
 
 const Register = () => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState();
+  const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
-  const [userName, setUserName] = useState();
+  const [userName, setUserName] = useState("");
   const [userNameError, setUserNameError] = useState("");
   const [password, setPassword] = useState();
   const [passwordError, setPasswordError] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState();
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [message, setMessage] = useState("");
+  const [loader, setloader] = useState(false);
+  const [passManage, setPassManage] = useState(false);
+  const [cPassManage, setCPassManage] = useState(false);
+  const [user, setUser] = useState({});
+
+  const handleCallbackResponse = async (response) => {
+    // console.log("Encoded JWT ID token: " + response.credential);
+    var userObject = jwtDecode(response.credential);
+    console.log(userObject);
+    setUser(userObject);
+    document.getElementById("signInDiv").hidden = true;
+    console.log(user);
+    let userName = userObject.given_name;
+    let email = userObject.email;
+    let password = userObject.sub;
+    const res = await postGoogleRegisterData(userName, email, password);
+    if (res.success === false) {
+      console.log(res);
+      setMessage(res.message);
+      setloader(false);
+    } else {
+      setloader(false);
+      console.log(res);
+      navigate("/verify");
+    }
+  };
+
+  useEffect(() => {
+    /* global google */
+    google.accounts.id.initialize({
+      client_id:
+        "720571755003-bpacvgmam44os9dn53o656rdec8sr53i.apps.googleusercontent.com",
+      callback: handleCallbackResponse,
+    });
+    google.accounts.id.renderButton(document.getElementById("signInDiv"), {
+      theme: "outline",
+      size: "medium",
+    });
+  }, []);
+
+  function handleSignOut(e) {
+    setUser({});
+    document.getElementById("signInDiv").hidden = false;
+  }
 
   const validation = () => {
     let userIsValid = true;
+    if (email) {
+      setEmailError("");
+    } else if (!email) {
+      setEmailError("Please enter email");
+      userIsValid = false;
+    }
     if (userName) {
       setUserNameError("");
     } else if (!userName) {
@@ -31,20 +93,57 @@ const Register = () => {
       setPasswordError("Please enter password");
       userIsValid = false;
     }
-    if (email) {
-      setEmailError("");
-    } else if (!email) {
-      setEmailError("Please enter email");
+    if (!confirmPassword) {
+      setConfirmPasswordError("Please enter confirm password");
+      userIsValid = false;
+    } else if (confirmPassword === password) {
+      setConfirmPasswordError("");
+    } else {
+      setConfirmPasswordError("Please enter same password");
       userIsValid = false;
     }
-
     return userIsValid;
   };
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (validation()) {
-      navigate("/login");
+      setloader(true);
+      // axios
+      //   .post(`${EndPointing}api/v1/user/signup`, {
+      //     username: userName,
+      //     email: email,
+      //     password: password,
+      //   })
+      const response = await postRegisterData(userName, email, password);
+      if (response.success === false) {
+        console.log(response);
+        setMessage(response.message);
+        setloader(false);
+      } else {
+        setloader(false);
+        console.log(response);
+        navigate("/verify");
+      }
+      // else{
+      //   setloader(false);
+      //   console.log(err);
+      // }
+    }
+  };
+
+  const passManagehandle = () => {
+    if (passManage === false) {
+      setPassManage(true);
+    } else {
+      setPassManage(false);
+    }
+  };
+  const cPassManagehandle = () => {
+    if (cPassManage === false) {
+      setCPassManage(true);
+    } else {
+      setCPassManage(false);
     }
   };
   return (
@@ -61,7 +160,7 @@ const Register = () => {
                         <div className="text-center mb-5">
                           <h3>Register Account</h3>
                           <p className="text-muted">
-                            Get your free Vhato account now.
+                            Get your free ChatApp account now.
                           </p>
                         </div>
                         <form onSubmit={submit}>
@@ -105,34 +204,82 @@ const Register = () => {
                             >
                               Password
                             </label>
-                            <input
-                              type="password"
-                              className="form-control"
-                              id="userpassword"
-                              placeholder="Enter password"
-                              value={password}
-                              onChange={(e) => [
-                                setPassword(e.target.value),
-                                setPasswordError(""),
-                              ]}
-                            />
+                            <div className="position-relative auth-pass-inputgroup mb-3">
+                              <input
+                                type={passManage ? "text" : "password"}
+                                className="form-control"
+                                id="userpassword"
+                                placeholder="Enter password"
+                                value={password}
+                                onChange={(e) => [
+                                  setPassword(e.target.value),
+                                  setPasswordError(""),
+                                ]}
+                              />
+                              <button
+                                className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
+                                type="button"
+                                id="password-addon"
+                                onClick={() => passManagehandle()}
+                              >
+                                {passManage ? <RiEyeFill /> : <RiEyeOffFill />}
+                              </button>
+                            </div>
                             <div className="error">{passwordError}</div>
                           </div>
+                          <div className="mb-3">
+                            <label
+                              htmlFor="userpassword"
+                              className="form-label"
+                            >
+                              Confirm Password
+                            </label>
+                            <div className="position-relative auth-pass-inputgroup mb-3">
+                              <input
+                                type={cPassManage ? "text" : "password"}
+                                className="form-control"
+                                id="userpassword"
+                                placeholder="Enter password"
+                                value={confirmPassword}
+                                onChange={(e) => [
+                                  setConfirmPassword(e.target.value),
+                                  setConfirmPasswordError(""),
+                                ]}
+                              />
+                              <button
+                                className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
+                                type="button"
+                                id="password-addon"
+                                onClick={() => cPassManagehandle()}
+                              >
+                                {cPassManage ? <RiEyeFill /> : <RiEyeOffFill />}
+                              </button>
+                            </div>
+                            <div className="error">{confirmPasswordError}</div>
+                          </div>
+
                           <div className="mb-4">
                             <p className="mb-0">
-                              By registering you agree to the Vhato
-                              <a href=" " className="text-primary">
+                              By registering you agree to the ChatApp
+                              <Link to="" className="text-primary">
                                 Terms of Use
-                              </a>
+                              </Link>
                             </p>
                           </div>
+                          <div className="error">{message}</div>
                           <div className="mb-3">
                             <button
                               className="btn btn-primary w-100 waves-effect waves-light"
                               type="submit"
                               onSubmit={() => submit()}
                             >
-                              Register
+                              {loader ? (
+                                <div className="spinner-border" role="status">
+                                  <span className="sr-only"></span>
+                                </div>
+                              ) : (
+                                "Register"
+                              )}
                             </button>
                           </div>
                           <div className="mt-4 text-center">
@@ -167,6 +314,12 @@ const Register = () => {
                                     Google
                                   </button>
                                 </div>
+                                <div id="signInDiv"></div>
+                                {Object.keys(user).length !== 0 && (
+                                  <button onClick={(e) => handleSignOut(e)}>
+                                    Sign Out{" "}
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
