@@ -1,22 +1,72 @@
-import { React } from "react";
+import { React, useContext, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { getUsersList, searchUser } from "../auth.request";
+import Avatar from "react-avatar";
+import { GroupDetails } from "../../App";
+import { data } from "../../helper";
 
 const MessagePane = () => {
-  // const [users, setUsers] = useState("");
-  // useEffect(() => {
-  //   getUsers();
-  // });
+  const location = useLocation();
 
-  // const getUsers = () => {
+  const details = useContext(GroupDetails);
 
-  // };
+  const [searchedText, setSearchedText] = useState("");
+  let loginUser = JSON.parse(localStorage.getItem("userData"));
+
+  const searchHandle = async (e) => {
+    setSearchedText(e);
+    if (e.length > 3) {
+      details.setMessage("");
+      let body = {
+        searchText: e,
+      };
+      const response = await searchUser(body);
+      if (response.success) {
+        let newList = response.data.filter(
+          (e) => e.email !== loginUser.userEmail
+        );
+        details.setUsers(newList);
+      } else {
+        details.setUsers(response.data);
+        details.setMessage(response.message);
+      }
+    } else {
+      getUser();
+    }
+  };
+  const getUser = async () => {
+    const response = await getUsersList(data);
+    if (response.success) {
+      details.setMessage("");
+      details.setUsers(
+        response.data.list.filter((e) => e.email !== loginUser.userEmail)
+      );
+      if (!details.users) {
+        details.setUserCount("No User Found");
+      } else {
+        details.setUserCount("");
+      }
+    } else {
+      console.log(response);
+    }
+  };
+
+  const active = (e) => {
+    details.setCurrentId(e._id);
+    details.setCurrentGroupDetails(e);
+  };
+
+  const showHandle = (e) => {
+    details.setButtonCheck(e);
+    details.setCloseModal(true);
+  };
   return (
     <div
-      className="tab-pane show active"
+      className={`tab-pane show ${location.search === "?chat" ? "active" : location.search === '' ? "active" : ""} `}
       id="pills-chat"
       role="tabpanel"
       aria-labelledby="pills-chat-tab"
     >
-      {/* Start chats content */}
       <div>
         <div className="px-4 pt-4">
           <div className="d-flex align-items-start">
@@ -32,193 +82,265 @@ const MessagePane = () => {
                 type="text"
                 className="form-control bg-light border-0"
                 id="searchChatUser"
-                //   onkeyup="searchUser()"
                 placeholder="Search here..."
                 aria-label="Example text with button addon"
                 aria-describedby="searchbtn-addon"
-                autoComplete="off"
+                onChange={(e) => searchHandle(e.target.value)}
               />
-              <button
-                className="btn btn-light p-0"
-                type="button"
-                id="searchbtn-addon"
-              >
-                <i className="bx bx-search align-middle" />
-              </button>
             </div>
           </form>
         </div>
-        {/* .p-4 */}
-        <div className="chat-room-list" data-simplebar>
-          {/* Start chat-message-list */}
-          <h5 className="mb-3 px-4 mt-4 fs-11 text-muted text-uppercase">
-            Favourites
-          </h5>
-          <div className="chat-message-list">
-            <ul
-              className="list-unstyled chat-list chat-user-list"
-              id="favourite-users"
-            >
-              <li id="contact-id-1" data-name="favorite" className="active">
-                <a href=" " className="unread-msg-user">
-                  <div className="d-flex align-items-center">
-                    <div className="chat-user-img online align-self-center me-2 ms-0">
-                      <img
-                        src="/images/users/avatar-2.jpg"
-                        className="rounded-circle avatar-xs"
-                        alt=""
-                      />
-                      <span className="user-status"></span>
-                    </div>
-                    <div className="overflow-hidden me-2">
-                      <p className="text-truncate chat-username mb-0">
-                        Victoria Lane
-                      </p>
-                      <p className="text-truncate text-muted fs-13 mb-0">
-                        Hey, I'm going to meet a friend of
-                      </p>
-                    </div>
-                    <div className="ms-auto">
-                      <span className="badge badge-soft-danger rounded p-1 fs-10">
-                        18
-                      </span>
-                    </div>
-                  </div>
-                </a>
-              </li>
-              <li id="contact-id-2" data-name="favorite" className="">
-                <a href=" ">
-                  <div className="d-flex align-items-center">
-                    <div className="chat-user-img online align-self-center me-2 ms-0">
-                      <img
-                        src="/images/users/avatar-7.jpg"
-                        className="rounded-circle avatar-xs"
-                        alt=""
-                      />
-                      <span className="user-status"></span>
-                    </div>
-                    <div className="overflow-hidden me-2">
-                      <p className="text-truncate chat-username mb-0">
-                        Etta McDaniel
-                      </p>
-                      <p className="text-truncate text-muted fs-13 mb-0">
-                        Yeah everything is fine. Our next meeting tomorrow
-                      </p>
-                    </div>
-                  </div>
-                </a>
-              </li>
-              <li id="contact-id-3" data-name="favorite" className="">
-                <a href=" ">
-                  <div className="d-flex align-items-center">
-                    <div className="chat-user-img online align-self-center me-2 ms-0">
-                      <div className="avatar-xs">
-                        <span className="avatar-title rounded-circle bg-primary text-white">
-                          <span className="username">JP</span>
-                          <span className="user-status"></span>
-                        </span>
+        {searchedText.length > 3 ? (
+          <ul
+            className="list-unstyled chat-list chat-user-list"
+            id="favourite-users"
+          >
+            {details.users?.map((item, index) => {
+              return (
+                <li
+                  id="UserList"
+                  data-name="favorite"
+                  className={details.currentId === item._id ? "active" : ""}
+                  onClick={() => active(item)}
+                  key={index}
+                >
+                  <Link to="" className="unread-msg-user">
+                    <div className="d-flex align-items-center">
+                      <div className="chat-user-img online align-self-center me-2 ms-0">
+                        {item.userImg.length > 1 ? (
+                          <img
+                            src={item.userImg}
+                            className="rounded-circle avatar-xs"
+                            alt=""
+                          />
+                        ) : (
+                          <Avatar
+                            name={item.username[0]}
+                            size="30"
+                            textSizeRatio={1.75}
+                            round="20px"
+                          />
+                        )}
+                        <span
+                          className={
+                            item.userStatus === "active"
+                              ? "user-status-active"
+                              : item.userStatus === "away"
+                                ? "user-status-away"
+                                : item.userStatus === "donotdisturb"
+                                  ? "user-status-doNotDisturb"
+                                  : ""
+                          }
+                        ></span>
+                      </div>
+                      <div className="overflow-hidden me-2">
+                        <p className="text-truncate chat-username mb-0">
+                          {item.username}
+                        </p>
+                        <p className="text-truncate text-muted fs-13 mb-0">
+                          Hey there! I am Using ChatApp
+                        </p>
                       </div>
                     </div>
-                    <div className="overflow-hidden me-2">
-                      <p className="text-truncate chat-username mb-0">
-                        James Pinard
-                      </p>
-                      <p className="text-truncate text-muted fs-13 mb-0">
-                        Wow that's great!
-                      </p>
-                    </div>
-                  </div>
-                </a>
-              </li>
-              <li id="contact-id-4" data-name="favorite" className="">
-                <a href=" ">
-                  <div className="d-flex align-items-center">
-                    <div className="chat-user-img online align-self-center me-2 ms-0">
-                      <img
-                        src="/images/users/avatar-4.jpg"
-                        className="rounded-circle avatar-xs"
-                        alt=""
-                      />
-                      <span className="user-status"></span>
-                    </div>
-                    <div className="overflow-hidden me-2">
-                      <p className="text-truncate chat-username mb-0">
-                        Ronald Downey
-                      </p>
-                      <p className="text-truncate text-muted fs-13 mb-0">
-                        Why I try the to get demo data following the instruction
-                        from API Integration
-                      </p>
-                    </div>
-                  </div>
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div className="d-flex align-items-center px-4 mt-5 mb-2">
-            <div className="flex-grow-1">
-              <h4 className="mb-0 fs-11 text-muted text-uppercase">
-                Direct Messages
-              </h4>
+                  </Link>
+                </li>
+              );
+            })}
+            <div className="error" style={{ textAlign: "center" }}>
+              {details.message}
             </div>
-            <div className="flex-shrink-0">
-              <div
-                data-bs-toggle="tooltip"
-                data-bs-trigger="hover"
-                data-bs-placement="top"
-                title="New Message"
+            {details.message ? (
+              <div>
+                <img
+                  src="/images/No result Found.jpg"
+                  alt=""
+                  style={{ width: "13%", marginLeft: "18%", marginTop: "-11%" }}
+                />
+              </div>
+            ) : (
+              ""
+            )}
+          </ul>
+        ) : (
+          <div className="chat-room-list" data-simplebar>
+            <div className="chat-message-list">
+              <ul
+                className="list-unstyled chat-list chat-user-list"
+                id="favourite-users"
               >
-                {/* Button trigger modal */}
-                <button
-                  type="button"
-                  className="btn btn-success btn-sm"
-                  data-bs-toggle="modal"
-                  data-bs-target=".contactModal"
-                >
-                  <i className="bx bx-plus align-middle" />
-                </button>
+                {details.userLoader ? (
+                  <div
+                    className="spinner-border"
+                    role="status"
+                    style={{
+                      display: "block",
+                      marginLeft: "auto",
+                      marginRight: "auto",
+                      marginTop: "30%",
+                    }}
+                  ></div>
+                ) : (
+                  details.users?.map((item, index) => {
+                    return (
+                      <li
+                        id="UserList"
+                        data-name="favorite"
+                        className={
+                          details.currentId === item._id ? "active" : ""
+                        }
+                        onClick={() => active(item)}
+                        key={index}
+                      >
+                        <Link to="" className="unread-msg-user">
+                          <div className="d-flex align-items-center">
+                            <div className="chat-user-img online align-self-center me-2 ms-0">
+                              {item.userImg.length > 1 ? (
+                                <img
+                                  src={item.userImg}
+                                  className="rounded-circle avatar-xs"
+                                  alt=""
+                                />
+                              ) : (
+                                <Avatar
+                                  name={item.username[0]}
+                                  size="30"
+                                  textSizeRatio={1.75}
+                                  round="20px"
+                                />
+                              )}
+                              <span
+                                className={
+                                  item.userStatus === "active"
+                                    ? "user-status-active"
+                                    : item.userStatus === "away"
+                                      ? "user-status-away"
+                                      : item.userStatus === "donotdisturb"
+                                        ? "user-status-doNotDisturb"
+                                        : ""
+                                }
+                              ></span>
+                            </div>
+                            <div className="overflow-hidden me-2">
+                              <p className="text-truncate chat-username mb-0">
+                                {item.username}
+                              </p>
+                              <p className="text-truncate text-muted fs-13 mb-0">
+                                Hey there! I am Using ChatApp
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })
+                )}
+                <div className="error text-center">{details.userCount}</div>
+                <div className="error" style={{ textAlign: "center" }}>
+                  {details.userLoader ? "" : details.message}
+                </div>
+                {details.userLoader ? (
+                  ""
+                ) : details.message ? (
+                  <div>
+                    <img
+                      src="/images/No result Found.jpg"
+                      alt=""
+                      style={{
+                        width: "13%",
+                        marginLeft: "18%",
+                        marginTop: "-9%",
+                      }}
+                    />
+                  </div>
+                ) : (
+                  ""
+                )}
+              </ul>
+            </div>
+            <div className="chat-message-list">
+              <ul
+                className="list-unstyled chat-list chat-user-list"
+                id="usersList"
+              />
+            </div>
+            <div className="d-flex align-items-center px-4 mt-5 mb-2">
+              <div className="flex-grow-1">
+                <h4 className="mb-0 fs-11 text-muted text-uppercase">
+                  {details.userLoader ||details.responseMessage? "" : "Groups"}
+                </h4>
+              </div>
+              <div className="flex-shrink-0">
+                <div>
+                  {details.userLoader || details.responseMessage ? (
+                    ""
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-success btn-sm"
+                      value="createButton"
+                      onClick={() => showHandle("Create Group")}
+                    >
+                      <i className="bx bx-plus align-middle" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="error" style={{ textAlign: "center" }}>{details.responseMessage}</div>
+
+            <div className="chat-message-list">
+              <ul
+                className="list-unstyled chat-list chat-user-list mb-3"
+                id="channelList"
+              >
+                {details.userLoader
+                  ? ""
+                  : details.group.map((item, index) => {
+                    return (
+                      <li
+                        id="UserList"
+                        data-name="favorite"
+                        className={
+                          details.currentId === item._id ? "active" : ""
+                        }
+                        onClick={() => active(item)}
+                        key={index}
+                      >
+                        <Link to="" className="unread-msg-user">
+                          <div className="d-flex align-items-center">
+                            <div className="chat-user-img online align-self-center me-2 ms-0">
+                              {item.groupImg.length > 1 ? (
+                                <img
+                                  src={item.groupImg}
+                                  className="rounded-circle avatar-xs"
+                                  alt=""
+                                />
+                              ) : (
+                                <Avatar
+                                  name={item.groupName[0]}
+                                  size="30"
+                                  textSizeRatio={1.75}
+                                />
+                              )}
+                            </div>
+                            <div className="overflow-hidden me-2">
+                              <p className="text-truncate chat-username mb-0">
+                                {item.groupName}
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+              </ul>
+              <div className="error text-center">
+                {details.userLoader ? "" : details.groupCount}
               </div>
             </div>
           </div>
-          <div className="chat-message-list">
-            <ul
-              className="list-unstyled chat-list chat-user-list"
-              id="usersList"
-            />
-          </div>
-          <div className="d-flex align-items-center px-4 mt-5 mb-2">
-            <div className="flex-grow-1">
-              <h4 className="mb-0 fs-11 text-muted text-uppercase">Channels</h4>
-            </div>
-            <div className="flex-shrink-0">
-              <div
-                data-bs-toggle="tooltip"
-                data-bs-trigger="hover"
-                data-bs-placement="top"
-                title="Create group"
-              >
-                {/* Button trigger modal */}
-                <button
-                  type="button"
-                  className="btn btn-success btn-sm"
-                  data-bs-toggle="modal"
-                  data-bs-target="#addgroup-exampleModal"
-                >
-                  <i className="bx bx-plus align-middle" />
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="chat-message-list">
-            <ul
-              className="list-unstyled chat-list chat-user-list mb-3"
-              id="channelList"
-            />
-          </div>
-          {/* End chat-message-list */}
-        </div>
+        )}
       </div>
-      {/* Start chats content */}
     </div>
   );
 };

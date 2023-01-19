@@ -1,467 +1,281 @@
-import React from 'react'
+import React, { useContext } from "react";
+import { useState } from "react";
+import { GroupDetails } from "../../App";
+import { updateUser, updateUserImg } from "../auth.request";
+import { useLocation } from "react-router-dom";
 
 const SettingsPane = () => {
+  const location = useLocation();
+
+  const details = useContext(GroupDetails);
+  const [userName, setUserName] = useState();
+  const [userEmail, setUserEmail] = useState();
+  const [userStatus, setUserStatus] = useState("");
+  const [statusIcon, setStatusIcon] = useState("");
+  const [userImage, setUserImage] = useState();
+  const [showUserImg, setShowUserImg] = useState();
+  const [loader, setLoader] = useState(false);
+
+  const userDetails = JSON.parse(localStorage.getItem("userData"));
+  const updateUserButton = async () => {
+    if (userImage) {
+      setLoader(true);
+      let formData = new FormData();
+      formData.append("userImg", userImage ? userImage : userDetails.userImg);
+      formData.append("username", userName ? userName : userDetails.userName);
+      formData.append("email", userEmail ? userEmail : userDetails.userEmail);
+      formData.append(
+        "userStatus",
+        userStatus ? userStatus : userDetails.userStatus
+      );
+      formData.append("isActive", true);
+      const res = await updateUserImg(formData, userDetails.id);
+
+      if (res.success) {
+        details.setUserImage(res.data.userImg);
+        details.setUserName(res.data.username);
+        const userData = {
+          id: res.data._id,
+          img: res.data.userImg,
+          userName: res.data.username,
+          userEmail: res.data.email,
+          userStatus: res.data.userStatus,
+        };
+        localStorage.setItem("userData", JSON.stringify(userData));
+        setLoader(false);
+      } else {
+        setLoader(false);
+      }
+    } else {
+      setLoader(true);
+      let body = {
+        username: userName ? userName : userDetails.userName,
+        email: userEmail ? userEmail : userDetails.userEmail,
+        userStatus: userStatus ? userStatus : userDetails.userStatus,
+      };
+      const response = await updateUser(body, userDetails.id);
+      if (response.success) {
+        details.setUserName(response.data.username);
+        setLoader(false);
+        setUserName(response.data.userName);
+        const userData = {
+          id: response.data._id,
+          img: response.data.userImg,
+          userName: response.data.username,
+          userEmail: response.data.email,
+          userStatus: response.data.userStatus,
+        };
+        localStorage.setItem("userData", JSON.stringify(userData));
+        setUserStatus(response.data.userStatus);
+        setUserImage(response.data.img);
+      } else {
+        setLoader(false);
+        console.log(response);
+      }
+    }
+  };
   return (
     <div
-    className="tab-pane"
-    id="pills-setting"
-    role="tabpanel"
-    aria-labelledby="pills-setting-tab"
-  >
-    {/* Start Settings content */}
-    <div>
-      <div className="user-profile-img">
-        <img
-          src="/images/small/img-4.jpg"
-          className="profile-img profile-foreground-img"
-          style={{ height: "160px" }}
-          alt=""
-        />
-        <div className="overlay-content">
-          <div>
-            <div className="user-chat-nav p-3">
-              <div className="d-flex w-100 align-items-center">
-                <div className="flex-grow-1">
-                  <h5 className="text-white mb-0">Settings</h5>
-                </div>
-                <div className="flex-shrink-0">
-                  <div
-                    className="avatar-xs p-0 rounded-circle profile-photo-edit"
-                    data-bs-toggle="tooltip"
-                    data-bs-trigger="hover"
-                    data-bs-placement="bottom"
-                    title="Change Background"
-                  >
-                    <input
-                      id="profile-foreground-img-file-input"
-                      type="file"
-                      className="profile-foreground-img-file-input"
-                    />
-                    <label
-                      htmlFor="profile-foreground-img-file-input"
-                      className="profile-photo-edit avatar-xs"
-                    >
-                      <span className="avatar-title rounded-circle bg-light text-body">
-                        <i className="bx bxs-pencil" />
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="text-center p-3 p-lg-4 border-bottom pt-2 pt-lg-2 mt-n5 position-relative">
-        <div className="mb-3 profile-user">
+      className={`tab-pane ${location.search === "?setting" ? "active" : ""}`}
+      id="pills-setting"
+      role="tabpanel"
+      aria-labelledby="pills-setting-tab"
+    >
+      <div>
+        <div className="user-profile-img">
           <img
-            src=" /images/users/avatar-1.jpg"
-            className="rounded-circle avatar-lg img-thumbnail user-profile-image"
+            src="/images/4902908.jpg"
+            className="profile-img profile-foreground-img"
+            style={{ height: "160px" }}
             alt=""
           />
-          <div className="avatar-xs p-0 rounded-circle profile-photo-edit">
-            <input
-              id="profile-img-file-input"
-              type="file"
-              className="profile-img-file-input"
+          <div className="overlay-content">
+            <div>
+              <div className="user-chat-nav p-3">
+                <div className="d-flex w-100 align-items-center">
+                  <div className="flex-grow-1">
+                    <h5 className="text-white mb-0">Settings</h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="text-center p-3 p-lg-4 border-bottom pt-2 pt-lg-2 mt-n5 position-relative">
+          <label className="mb-3 profile-user">
+            <img
+              src={userImage ? showUserImg : userDetails.img}
+              className="rounded-circle avatar-lg img-thumbnail user-profile-image"
+              alt=""
             />
-            <label
-              htmlFor="profile-img-file-input"
-              className="profile-photo-edit avatar-xs"
-            >
-              <span className="avatar-title rounded-circle bg-light text-body">
-                <i className="bx bxs-camera" />
-              </span>
-            </label>
-          </div>
-        </div>
-        <h5 className="fs-16 mb-1 text-truncate"> </h5>
-        <div className="dropdown d-inline-block">
-          <a
-            className="text-muted dropdown-toggle d-block"
-            href=" "
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            <i className="bx bxs-circle text-success fs-10 align-middle" />
-            Active
-          </a>
-          <div className="dropdown-menu">
-            <a className="dropdown-item" href=" ">
-              <i className="bx bxs-circle text-success fs-10 me-1 align-middle" />
-              Active
-            </a>
-            <a className="dropdown-item" href=" ">
-              <i className="bx bxs-circle text-warning fs-10 me-1 align-middle" />
-              Away
-            </a>
-            <a className="dropdown-item" href=" ">
-              <i className="bx bxs-circle text-danger fs-10 me-1 align-middle" />
-              Do not disturb
-            </a>
-          </div>
-        </div>
-      </div>
-      {/* End profile user */}
-      {/* Start User profile description */}
-      <div className="user-setting" data-simplebar>
-        <div id="settingprofile" className="accordion accordion-flush">
-          <div className="accordion-item">
-            <div className="accordion-header" id="headerpersonalinfo">
-              <a
-                className="accordion-button fs-14 fw-medium"
-                data-bs-toggle="collapse"
-                href="#personalinfo"
-                aria-expanded="true"
-                aria-controls="personalinfo"
+            <div className="avatar-xs p-0 rounded-circle profile-photo-edit">
+              <input
+                id="profile-img-file-input"
+                type="file"
+                className="profile-img-file-input"
+                onChange={(e) => [
+                  setUserImage(e.target.files[0]),
+                  setShowUserImg(URL.createObjectURL(e.target.files[0]))
+                ]
+                }
+              />
+              <label
+                htmlFor="profile-img-file-input"
+                className="profile-photo-edit avatar-xs"
               >
-                <div className="d-flex align-items-center">
-                  <div className="flex-shrink-0 me-3 avatar-xs">
-                    <div className="avatar-title bg-soft-info text-info rounded">
-                      <i className="bx bxs-user" />
-                    </div>
-                  </div>
-                  Personal Info
-                </div>
-              </a>
+                <span className="avatar-title rounded-circle bg-light text-body">
+                  <i className="bx bxs-camera" />
+                </span>
+              </label>
             </div>
-            <div
-              id="personalinfo"
-              className="accordion-collapse collapse show"
-              aria-labelledby="headerpersonalinfo"
-              data-bs-parent="#settingprofile"
+          </label>
+          <h5 className="fs-16 mb-1 text-truncate"> </h5>
+          <div className="dropdown d-inline-block" >
+            <a
+              className="text-muted dropdown-toggle d-block text-capitalize"
+              href=" "
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
             >
-              <div className="accordion-body edit-input">
-                <div className="float-end">
-                  <a
-                    href=" "
-                    className="badge bg-light text-muted"
-                    id="user-profile-edit-btn"
-                  >
-                    <i
-                      className="bx bxs-pencil align-middle"
-                      id="edit-icon"
-                    />
-                  </a>
-                </div>
-                <div>
-                  <label
-                    htmlFor="exampleInputPassword1"
-                    className="form-label text-muted fs-13"
-                  >
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="exampleInputPassword1"
-                    defaultValue="Dushane Daniel"
-                    placeholder="Enter name"
-                    disabled
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="exampleInputPassword1"
-                    className="form-label text-muted fs-13"
-                  >
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    id="exampleInputPassword1"
-                    defaultValue="dashanedaniel@vhato.com"
-                    placeholder="Enter email"
-                    disabled
-                  />
-                </div>
-                <div className="mt-3">
-                  <label
-                    htmlFor="exampleInputPassword1"
-                    className="form-label text-muted fs-13"
-                  >
-                    Phone No
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="exampleInputPassword1"
-                    defaultValue="+(245) 4577 14523"
-                    placeholder="Enter phone no"
-                    disabled
-                  />
-                </div>
-                <div className="mt-3">
-                  <label
-                    htmlFor="exampleInputPassword1"
-                    className="form-label text-muted fs-13"
-                  >
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="exampleInputPassword1"
-                    defaultValue="California, USA"
-                    placeholder="Location"
-                    disabled
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* end personal info card */}
-          <div className="accordion-item">
-            <div className="accordion-header" id="privacy1">
-              <a
-                className="accordion-button fs-14 fw-medium collapsed"
-                data-bs-toggle="collapse"
-                href="#privacy"
-                aria-expanded="false"
-                aria-controls="privacy"
-              >
-                <div className="d-flex align-items-center">
-                  <div className="flex-shrink-0 me-3 avatar-xs">
-                    <div className="avatar-title bg-soft-info text-info rounded">
-                      <i className="bx bxs-lock" />
-                    </div>
-                  </div>
-                  Privacy
-                </div>
-              </a>
-            </div>
-            <div
-              id="privacy"
-              className="accordion-collapse collapse"
-              aria-labelledby="privacy1"
-              data-bs-parent="#settingprofile"
-            >
-              <div className="accordion-body">
-                <h6 className="mb-3">Who can see my personal info</h6>
-                <ul className="list-unstyled vstack gap-4 mb-0">
-                  <li>
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1 overflow-hidden">
-                        <h5 className="fs-13 mb-0 text-truncate">
-                          Profile photo
-                        </h5>
-                      </div>
-                      <div className="flex-shrink-0 ms-2">
-                        <select className="form-select form-select-sm">
-                          <option value="Everyone" defaultValue>
-                            Everyone
-                          </option>
-                          <option value="Selected">Selected</option>
-                          <option value="Nobody">Nobody</option>
-                        </select>
-                      </div>
-                    </div>
-                  </li>
-                  <li>
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1 overflow-hidden">
-                        <h5 className="fs-13 mb-0 text-truncate">
-                          Status
-                        </h5>
-                      </div>
-                      <div className="flex-shrink-0 ms-2">
-                        <select className="form-select form-select-sm">
-                          <option value="Everyone" defaultValue>
-                            Everyone
-                          </option>
-                          <option value="Selected">Selected</option>
-                          <option value="Nobody">Nobody</option>
-                        </select>
-                      </div>
-                    </div>
-                  </li>
-                  <li>
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1 overflow-hidden">
-                        <h5 className="fs-13 mb-0 text-truncate">
-                          Groups
-                        </h5>
-                      </div>
-                      <div className="flex-shrink-0 ms-2">
-                        <select className="form-select form-select-sm">
-                          <option value="Everyone" defaultValue>
-                            Everyone
-                          </option>
-                          <option value="Selected">Selected</option>
-                          <option value="Nobody">Nobody</option>
-                        </select>
-                      </div>
-                    </div>
-                  </li>
-                  <li>
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1 overflow-hidden">
-                        <h5 className="fs-13 mb-0 text-truncate">
-                          Last seen
-                        </h5>
-                      </div>
-                      <div className="flex-shrink-0 ms-2">
-                        <div className="form-check form-switch">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="privacy-lastseenSwitch"
-                            defaultChecked
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor="privacy-lastseenSwitch"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                  <li>
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1 overflow-hidden">
-                        <h5 className="fs-13 mb-0 text-truncate">
-                          Read receipts
-                        </h5>
-                      </div>
-                      <div className="flex-shrink-0 ms-2">
-                        <div className="form-check form-switch">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="privacy-readreceiptSwitch"
-                            defaultChecked
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor="privacy-readreceiptSwitch"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          {/* end privacy card */}
-          <div className="accordion-item">
-            <div className="accordion-header" id="headersecurity">
-              <a
-                className="accordion-button fs-14 fw-medium collapsed"
-                data-bs-toggle="collapse"
-                href="#collapsesecurity"
-                aria-expanded="false"
-                aria-controls="collapsesecurity"
-              >
-                <div className="d-flex align-items-center">
-                  <div className="flex-shrink-0 me-3 avatar-xs">
-                    <div className="avatar-title bg-soft-info text-info rounded">
-                      <i className="bx bxs-check-shield" />
-                    </div>
-                  </div>
-                  Security
-                </div>
-              </a>
-            </div>
-            <div
-              id="collapsesecurity"
-              className="accordion-collapse collapse"
-              aria-labelledby="headersecurity"
-              data-bs-parent="#settingprofile"
-            >
-              <div className="accordion-body">
-                <ul className="list-group list-group-flush">
-                  <li className="list-group-item p-0">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1 overflow-hidden">
-                        <h5 className="fs-13 mb-0 text-truncate">
-                          Show security notification
-                        </h5>
-                      </div>
-                      <div className="flex-shrink-0 ms-2">
-                        <div className="form-check form-switch">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="security-notificationswitch"
-                          />
-                          <label
-                            className="form-check-label"
-                            htmlFor="security-notificationswitch"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          {/* end security card */}
-          <div className="accordion-item">
-            <div className="accordion-header" id="headerhelp">
+              <i
+                className={
+                  statusIcon.length > 0
+                    ? statusIcon
+                    : userStatus || userDetails.userStatus === "active"
+                      ? "bx bxs-circle text-success fs-10 me-1 align-middle"
+                      : userStatus || userDetails.userStatus === "away"
+                        ? "bx bxs-circle text-warning fs-10 me-1 align-middle"
+                        : userStatus || userDetails.userStatus === "donotdisturb"
+                          ? "bx bxs-circle text-danger fs-10 me-1 align-middle"
+                          : ""
+                }
+              />
+              {userStatus ? userStatus : userDetails.userStatus}
+            </a>
+            <div className="dropdown-menu">
               <button
-                className="accordion-button fs-14 fw-medium collapsed"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapsehelp"
-                aria-expanded="false"
-                aria-controls="collapsehelp"
+                className="dropdown-item"
+                onClick={() => [
+                  setUserStatus("active"),
+                  setStatusIcon(
+                    "bx bxs-circle text-success fs-10 me-1 align-middle"
+                  ),
+                ]}
               >
-                <div className="d-flex align-items-center">
-                  <div className="flex-shrink-0 me-3 avatar-xs">
-                    <div className="avatar-title bg-soft-info text-info rounded">
-                      <i className="bx bxs-help-circle" />
-                    </div>
-                  </div>
-                  Help
-                </div>
+                <i className="bx bxs-circle text-success fs-10 me-1 align-middle" />
+                Active
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => [
+                  setUserStatus("away"),
+                  setStatusIcon(
+                    "bx bxs-circle text-warning fs-10 me-1 align-middle"
+                  ),
+                ]}
+              >
+                <i className="bx bxs-circle text-warning fs-10 me-1 align-middle" />
+                Away
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => [
+                  setUserStatus("donotdisturb"),
+                  setStatusIcon(
+                    "bx bxs-circle text-danger fs-10 me-1 align-middle"
+                  ),
+                ]}
+              >
+                <i className="bx bxs-circle text-danger text-uppercase fs-10 me-1 align-middle" />
+                Do Not Disturb
               </button>
             </div>
-            <div
-              id="collapsehelp"
-              className="accordion-collapse collapse"
-              aria-labelledby="headerhelp"
-              data-bs-parent="#settingprofile"
-            >
-              <div className="accordion-body">
-                <ul className="list-unstyled vstack gap-4 mb-0">
-                  <li>
-                    <h5 className="fs-13 mb-0">
-                      <a href=" " className="text-body d-block">
-                        FAQs
-                      </a>
-                    </h5>
-                  </li>
-                  <li>
-                    <h5 className="fs-13 mb-0">
-                      <a href=" " className="text-body d-block">
-                        Contact
-                      </a>
-                    </h5>
-                  </li>
-                  <li>
-                    <h5 className="fs-13 mb-0">
-                      <a href=" " className="text-body d-block">
-                        Terms &amp; Privacy policy
-                      </a>
-                    </h5>
-                  </li>
-                </ul>
+          </div>
+        </div>
+        <div
+          className="user-setting"
+          data-simplebar
+          style={{ height: "calc(33vh)" }}
+        >
+          <div id="settingprofile" className="accordion accordion-flush">
+            <div className="accordion-item">
+              <div
+                id="personalinfo"
+                className="accordion-collapse collapse show"
+                aria-labelledby="headerpersonalinfo"
+                data-bs-parent="#settingprofile"
+              >
+                <div className="accordion-body edit-input">
+                  <div>
+                    <label
+                      htmlFor="exampleInputPassword1"
+                      className="form-label text-muted fs-13"
+                    >
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="exampleInputPassword1"
+                      defaultValue={userName ? userName : userDetails.userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      placeholder="Enter name"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="exampleInputPassword1"
+                      className="form-label text-muted fs-13"
+                      style={{ marginTop: "5px" }}
+                    >
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      id="exampleInputPassword1"
+                      defaultValue={userDetails.userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
+                      placeholder="Enter email"
+                    />
+                  </div>
+                  <div className="text-center mt-4">
+                    <div className="row">
+                      <div className="col-6">
+                        <button
+                          className="btn btn-primary w-100"
+                          type="submit"
+                          onClick={() => updateUserButton()}
+                          style={{ width: "27%", height: "37px" }}
+                        >
+                          {loader ? (
+                            <div
+                              className="spinner-border"
+                              role="status"
+                              style={{
+                                display: "block",
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                                marginTop: "-5px",
+                              }}
+                            ></div>
+                          ) : (
+                            "Save"
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        {/* end profile-setting-accordion */}
       </div>
-      {/* End User profile description */}
     </div>
-    {/* Start Settings content */}
-  </div>
-  )
-}
+  );
+};
 
-export default SettingsPane
+export default SettingsPane;

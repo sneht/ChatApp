@@ -26,7 +26,7 @@ const Verify = () => {
                         <p className="text-muted fs-15">
                           Thank you for using{" "}
                           <span className="fw-semibold text-dark">
-                            FrontEndArmy
+                            FrontEndArmy ChatApp
                           </span>
                         </p>
                         <div className="mt-4">
@@ -37,17 +37,6 @@ const Verify = () => {
                           </Link>{" "}
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="row">
-                  <div className="col-xl-12">
-                    <div className="text-center text-muted p-4">
-                      <p className="mb-0">
-                        © FrontEndArmy. Crafted with
-                        <i className="bi bi-heart text-danger" />
-                      </p>
                     </div>
                   </div>
                 </div>

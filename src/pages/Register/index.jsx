@@ -1,18 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
-import {
-  RiFacebookCircleFill,
-  RiGoogleFill,
-  RiHeartFill,
-  RiEyeFill,
-  RiEyeOffFill,
-} from "react-icons/ri";
+import { RiEyeFill, RiEyeOffFill } from "react-icons/ri";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router";
-// import { EndPointing } from "../../helper";
-// import axios from "axios";
-import { postRegisterData } from "../../components/auth.request";
-import { postGoogleRegisterData } from "../../components/auth.request";
+import { registerHandle } from "../../components/auth.request";
 
 import jwtDecode from "jwt-decode";
 
@@ -31,27 +22,27 @@ const Register = () => {
   const [loader, setloader] = useState(false);
   const [passManage, setPassManage] = useState(false);
   const [cPassManage, setCPassManage] = useState(false);
-  const [user, setUser] = useState({});
+  const [userImage, setUserImage] = useState();
+  const [userImageError, setUserImageError] = useState("");
+  const [showUserImg, setShowUserImg] = useState();
 
   const handleCallbackResponse = async (response) => {
-    // console.log("Encoded JWT ID token: " + response.credential);
     var userObject = jwtDecode(response.credential);
-    console.log(userObject);
-    setUser(userObject);
-    document.getElementById("signInDiv").hidden = true;
-    console.log(user);
     let userName = userObject.given_name;
     let email = userObject.email;
     let password = userObject.sub;
-    const res = await postGoogleRegisterData(userName, email, password);
-    if (res.success === false) {
-      console.log(res);
+    var data = {
+      username: userName,
+      email: email,
+      password: password,
+    };
+    const res = await registerHandle(data);
+    if (res.success) {
+      setloader(false);
+      navigate("/verify");
+    } else {
       setMessage(res.message);
       setloader(false);
-    } else {
-      setloader(false);
-      console.log(res);
-      navigate("/verify");
     }
   };
 
@@ -68,13 +59,14 @@ const Register = () => {
     });
   }, []);
 
-  function handleSignOut(e) {
-    setUser({});
-    document.getElementById("signInDiv").hidden = false;
-  }
-
   const validation = () => {
     let userIsValid = true;
+    if (!userImage) {
+      setUserImageError("Please select Image");
+      userIsValid = false;
+    } else {
+      setUserImageError("");
+    }
     if (email) {
       setEmailError("");
     } else if (!email) {
@@ -109,43 +101,23 @@ const Register = () => {
     e.preventDefault();
     if (validation()) {
       setloader(true);
-      // axios
-      //   .post(`${EndPointing}api/v1/user/signup`, {
-      //     username: userName,
-      //     email: email,
-      //     password: password,
-      //   })
-      const response = await postRegisterData(userName, email, password);
-      if (response.success === false) {
-        console.log(response);
-        setMessage(response.message);
+      let formData = new FormData();
+      formData.append("username", userName);
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("userImg", userImage);
+      const response = await registerHandle(formData);
+
+      if (response.success) {
         setloader(false);
+        navigate("/verify");
       } else {
         setloader(false);
-        console.log(response);
-        navigate("/verify");
+        setMessage(response.message);
       }
-      // else{
-      //   setloader(false);
-      //   console.log(err);
-      // }
     }
   };
 
-  const passManagehandle = () => {
-    if (passManage === false) {
-      setPassManage(true);
-    } else {
-      setPassManage(false);
-    }
-  };
-  const cPassManagehandle = () => {
-    if (cPassManage === false) {
-      setCPassManage(true);
-    } else {
-      setCPassManage(false);
-    }
-  };
   return (
     <div>
       <div className="auth-bg">
@@ -164,6 +136,58 @@ const Register = () => {
                           </p>
                         </div>
                         <form onSubmit={submit}>
+                          <label className="mb-3 profile-user d-block">
+                            <img
+                              src={
+                                userImage
+                                  ? showUserImg
+                                  : "/images/users/user-dummy-img.jpg"
+                              }
+                              className="rounded-circle avatar-lg img-thumbnail user-profile-image"
+                              style={{
+                                display: "block",
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                              }}
+                              alt=""
+                            />
+                            <div
+                              className="avatar-xs p-0 rounded-circle "
+                              style={{
+                                display: "block",
+                                marginLeft: "55%",
+                                marginTop: "-8%",
+                                marginRight: "auto",
+                              }}
+                            >
+                              <input
+                                id="profile-img-file-input"
+                                type="file"
+                                className="profile-img-file-input"
+                                onChange={(e) => [
+                                  setUserImage(e.target.files[0]),
+                                  setShowUserImg(
+                                    URL.createObjectURL(e.target.files[0])
+                                  ),
+                                  setUserImageError(""),
+                                ]}
+                              />
+                              <label
+                                htmlFor="profile-img-file-input"
+                                className="avatar-xs"
+                              >
+                                <span className="avatar-title rounded-circle bg-light text-body">
+                                  <i className="bx bxs-camera" />
+                                </span>
+                              </label>
+                            </div>
+                            <div
+                              className="error"
+                              style={{ textAlign: "center" }}
+                            >
+                              {userImageError}
+                            </div>
+                          </label>
                           <div className="mb-3">
                             <label htmlFor="useremail" className="form-label">
                               Email
@@ -197,6 +221,7 @@ const Register = () => {
                             />
                             <div className="error">{userNameError}</div>
                           </div>
+
                           <div className="mb-3">
                             <label
                               htmlFor="userpassword"
@@ -220,16 +245,20 @@ const Register = () => {
                                 className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
                                 type="button"
                                 id="password-addon"
-                                onClick={() => passManagehandle()}
+                                onClick={() =>
+                                  passManage
+                                    ? setPassManage(false)
+                                    : setPassManage(true)
+                                }
                               >
                                 {passManage ? <RiEyeFill /> : <RiEyeOffFill />}
                               </button>
+                              <div className="error">{passwordError}</div>
                             </div>
-                            <div className="error">{passwordError}</div>
                           </div>
                           <div className="mb-3">
                             <label
-                              htmlFor="userpassword"
+                              htmlFor="userCpassword"
                               className="form-label"
                             >
                               Confirm Password
@@ -238,7 +267,7 @@ const Register = () => {
                               <input
                                 type={cPassManage ? "text" : "password"}
                                 className="form-control"
-                                id="userpassword"
+                                id="userCpassword"
                                 placeholder="Enter password"
                                 value={confirmPassword}
                                 onChange={(e) => [
@@ -250,28 +279,24 @@ const Register = () => {
                                 className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
                                 type="button"
                                 id="password-addon"
-                                onClick={() => cPassManagehandle()}
+                                onClick={() =>
+                                  cPassManage
+                                    ? setCPassManage(false)
+                                    : setCPassManage(true)
+                                }
                               >
                                 {cPassManage ? <RiEyeFill /> : <RiEyeOffFill />}
                               </button>
+                              <div className="error">
+                                {confirmPasswordError}
+                              </div>
                             </div>
-                            <div className="error">{confirmPasswordError}</div>
                           </div>
 
-                          <div className="mb-4">
-                            <p className="mb-0">
-                              By registering you agree to the ChatApp
-                              <Link to="" className="text-primary">
-                                Terms of Use
-                              </Link>
-                            </p>
-                          </div>
-                          <div className="error">{message}</div>
                           <div className="mb-3">
                             <button
                               className="btn btn-primary w-100 waves-effect waves-light"
                               type="submit"
-                              onSubmit={() => submit()}
                             >
                               {loader ? (
                                 <div className="spinner-border" role="status">
@@ -282,6 +307,9 @@ const Register = () => {
                               )}
                             </button>
                           </div>
+                          <div className="error text-center mt-1">
+                            {message}
+                          </div>
                           <div className="mt-4 text-center">
                             <div className="signin-other-title">
                               <h5 className="fs-14 mb-4 title">
@@ -289,37 +317,15 @@ const Register = () => {
                               </h5>
                             </div>
                             <div className="row">
-                              <div className="col-6">
-                                <div>
-                                  <button
-                                    type="button"
-                                    className="btn btn-soft-info w-100"
-                                  >
-                                    <RiFacebookCircleFill
-                                      style={{ marginTop: "-3px" }}
-                                    />{" "}
-                                    Facebook
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="col-6">
-                                <div>
-                                  <button
-                                    type="button"
-                                    className="btn btn-soft-danger w-100"
-                                  >
-                                    <RiGoogleFill
-                                      style={{ marginTop: "-3px" }}
-                                    />{" "}
-                                    Google
-                                  </button>
-                                </div>
+                              <div
+                                className="col-6"
+                                style={{
+                                  display: "block",
+                                  marginLeft: "auto",
+                                  marginRight: "auto",
+                                }}
+                              >
                                 <div id="signInDiv"></div>
-                                {Object.keys(user).length !== 0 && (
-                                  <button onClick={(e) => handleSignOut(e)}>
-                                    Sign Out{" "}
-                                  </button>
-                                )}
                               </div>
                             </div>
                           </div>
@@ -330,7 +336,7 @@ const Register = () => {
                             Already have an account ?
                             <Link
                               to="/login"
-                              className="fw-medium text-decoration-underline"
+                              className="fw-medium text-decoration-none"
                             >
                               Login
                             </Link>
@@ -340,29 +346,6 @@ const Register = () => {
                     </div>
                     {/* end col */}
                   </div>
-                  {/* end row */}
-                  <div className="row">
-                    <div className="col-xl-12">
-                      <div className="text-center text-muted p-4">
-                        <p className="mb-0">
-                          © Vhato. Crafted with
-                          <RiHeartFill
-                            style={{
-                              marginLeft: "2px",
-                              marginTop: "-3px",
-                              color: "red",
-                            }}
-                          />{" "}
-                          by
-                          <a href=" " target="_blank">
-                            Themesdesign
-                          </a>
-                        </p>
-                      </div>
-                    </div>
-                    {/* end col */}
-                  </div>
-                  {/* end row */}
                 </div>
               </div>
             </div>

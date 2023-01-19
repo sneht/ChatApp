@@ -1,48 +1,38 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router";
-import {
-  RiEyeFill,
-  RiFacebookCircleFill,
-  RiGoogleFill,
-  RiHeartFill,
-  RiEyeOffFill,
-} from "react-icons/ri";
+import { RiEyeFill, RiEyeOffFill } from "react-icons/ri";
 import { Link } from "react-router-dom";
-// import { EndPointing } from "../../helper";
-// import axios from "axios";
-import { postUserData } from "../../components/auth.request";
+import { loginhandle } from "../../components/auth.request";
 import jwtDecode from "jwt-decode";
-// import GoogleButton from 'react-google-button'
-
+import { GroupDetails } from "../../App";
 const Login = () => {
+  const userimage = useContext(GroupDetails);
   localStorage.clear();
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState();
   const [passwordError, setPasswordError] = useState("");
   const [message, setMessage] = useState("");
-  const [loader, setloader] = useState(false);
-  const [passManage, setPassManage] = useState(false);
-  const [user, setUser] = useState({});
+  const [loader, setLoader] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleCallbackResponse = async (response) => {
-    // console.log("Encoded JWT ID token: " + response.credential);
     var userObject = jwtDecode(response.credential);
-    console.log(userObject);
-    setUser(userObject);
-    document.getElementById("signInDiv").hidden = true;
     let email = userObject.email;
     let password = userObject.sub;
-    const resp = await postUserData(email, password);
+    var data = {
+      email: email,
+      password: password,
+    };
+    const resp = await loginhandle(data);
     if (resp) {
-      console.log(resp);
-      setloader(false);
       setMessage(resp.message);
-      const token = resp.data.data.token;
-      localStorage.setItem("accessToken", JSON.stringify(token));
+      localStorage.setItem("accessToken", resp.data.token);
+      localStorage.setItem("userName", resp.data.username);
+      localStorage.setItem("userEmail", resp.data.email);
+      localStorage.setItem("id", resp.data.data.id);
       navigate("/");
     }
   };
@@ -60,10 +50,6 @@ const Login = () => {
     });
   }, []);
 
-  function handleSignOut(e) {
-    setUser({});
-    document.getElementById("signInDiv").hidden = false;
-  }
   const validation = () => {
     let userIsValid = true;
     if (email) {
@@ -84,26 +70,33 @@ const Login = () => {
   const submit = async (e) => {
     e.preventDefault();
     if (validation()) {
-      setloader(true);
-      const response = await postUserData(email, password);
-      if (response) {
-        setloader(false);
-        setMessage(response.message);
-        const token = response.data.data.token;
-        localStorage.setItem("accessToken", JSON.stringify(token));
+      setLoader(true);
+      let data = {
+        email: email,
+        password: password,
+      };
+      const response = await loginhandle(data);
+      if (response.success) {
+        userimage.setUserImage(response.data.userImg);
+        userimage.setUserName(response.data.username);
+        setLoader(false);
+        const userData = {
+          id: response.data._id,
+          img: response.data.userImg,
+          userName: response.data.username,
+          userEmail: response.data.email,
+          userStatus: response.data.userStatus,
+        };
+        localStorage.setItem("accessToken", response.data.token);
+        localStorage.setItem("userData", JSON.stringify(userData));
         navigate("/");
+      } else {
+        setLoader(false);
+        setMessage(response.message);
       }
-    } else {
-      console.log("Please fill up form");
     }
   };
-  const passManagehandle = () => {
-    if (passManage === false) {
-      setPassManage(true);
-    } else {
-      setPassManage(false);
-    }
-  };
+
   return (
     <div>
       <div className="auth-bg">
@@ -118,7 +111,7 @@ const Login = () => {
                         <div className="text-center mb-5">
                           <h3>Welcome Back !</h3>
                           <p className="text-muted">
-                            Sign in to continue to Vhato.
+                            Sign in to continue to Chat-App.
                           </p>
                         </div>
                         <form onSubmit={submit}>
@@ -154,7 +147,7 @@ const Login = () => {
                             </label>
                             <div className="position-relative auth-pass-inputgroup mb-3">
                               <input
-                                type={passManage ? "text" : "password"}
+                                type={showPassword ? "text" : "password"}
                                 className="form-control pe-5"
                                 placeholder="Enter Password"
                                 id="password-input"
@@ -169,32 +162,22 @@ const Login = () => {
                                 className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
                                 type="button"
                                 id="password-addon"
-                                onClick={() => passManagehandle()}
+                                onClick={() =>
+                                  showPassword
+                                    ? setShowPassword(false)
+                                    : setShowPassword(true)
+                                }
                               >
-                                {passManage ? <RiEyeFill /> : <RiEyeOffFill />}
+                                {showPassword ? <RiEyeFill /> : <RiEyeOffFill />}
                               </button>
                               <div className="error">{passwordError}</div>
                             </div>
                           </div>
-                          {/* <div className="form-check form-check-info fs-16">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              id="remember-check"
-                            />
-                            <label
-                              className="form-check-label fs-14"
-                              htmlFor="remember-check"
-                            >
-                              Remember me
-                            </label>
-                          </div> */}
-                          <div className="error">{message}</div>
+
                           <div className="text-center mt-4">
                             <button
                               className="btn btn-primary w-100"
                               type="submit"
-                              onSubmit={() => submit()}
                             >
                               {loader ? (
                                 <div className="spinner-border" role="status">
@@ -205,42 +188,23 @@ const Login = () => {
                               )}
                             </button>
                           </div>
+                          <div className="error text-center mt-1">
+                            {message}
+                          </div>
                           <div className="mt-4 text-center">
                             <div className="signin-other-title">
                               <h5 className="fs-14 mb-4 title">Sign in with</h5>
                             </div>
                             <div className="row">
-                              <div className="col-6">
-                                <div>
-                                  <button
-                                    type="button"
-                                    className="btn btn-soft-info w-100"
-                                  >
-                                    <RiFacebookCircleFill
-                                      style={{ marginTop: "-3px" }}
-                                    />{" "}
-                                    Facebook
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="col-6">
-                                <div>
-                                  <button
-                                    type="button"
-                                    className="btn btn-soft-danger w-100"
-                                  >
-                                    <RiGoogleFill
-                                      style={{ marginTop: "-3px" }}
-                                    />{" "}
-                                    Google
-                                  </button>
-                                </div>
+                              <div
+                                className="col-6"
+                                style={{
+                                  display: "block",
+                                  marginLeft: "auto",
+                                  marginRight: "auto",
+                                }}
+                              >
                                 <div id="signInDiv"></div>
-                                {Object.keys(user).length !== 0 && (
-                                  <button onClick={(e) => handleSignOut(e)}>
-                                    Sign Out{" "}
-                                  </button>
-                                )}
                               </div>
                             </div>
                           </div>
@@ -251,7 +215,7 @@ const Login = () => {
                             Don't have an account ?
                             <Link
                               to="/register"
-                              className="fw-medium text-decoration-underline"
+                              className="fw-medium text-decoration-none"
                             >
                               Register
                             </Link>
@@ -261,29 +225,6 @@ const Login = () => {
                     </div>
                     {/* end col */}
                   </div>
-                  {/* end row */}
-                  <div className="row">
-                    <div className="col-xl-12">
-                      <div className="text-center text-muted p-4">
-                        <p className="mb-0">
-                          © Vhato. Crafted with
-                          <RiHeartFill
-                            style={{
-                              marginLeft: "2px",
-                              marginTop: "-3px",
-                              color: "red",
-                            }}
-                          />{" "}
-                          by
-                          <a href=" " target="_blank">
-                            Themesdesign
-                          </a>
-                        </p>
-                      </div>
-                    </div>
-                    {/* end col */}
-                  </div>
-                  {/* end row */}
                 </div>
               </div>
             </div>

@@ -1,6 +1,5 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { RiHeartFill } from "react-icons/ri";
 const Logout = () => {
   localStorage.clear();
   return (
@@ -22,7 +21,7 @@ const Logout = () => {
                         <h5>You are Logged Out</h5>
                         <p className="text-muted fs-15">
                           Thank you for using
-                          <span className="fw-semibold text-dark">ChatApp</span>
+                          <span className="fw-semibold text-dark"> ChatApp</span>
                         </p>
                         <div className="mt-4">
                           <Link
@@ -35,40 +34,12 @@ const Logout = () => {
                       </div>
                     </div>
                   </div>
-                  {/* end col */}
                 </div>
-                {/* end row */}
-                <div className="row">
-                  <div className="col-xl-12">
-                    <div className="text-center text-muted p-4">
-                      <p className="mb-0">
-                        © ChatApp. Crafted with
-                        <RiHeartFill
-                          style={{
-                            marginLeft: "2px",
-                            marginRight: "2px",
-                            marginTop: "-3px",
-                            color: "red",
-                          }}
-                        />
-                        by
-                        <Link to="" target="_blank">
-                          Themesdesign
-                        </Link>
-                      </p>
-                    </div>
-                  </div>
-                  {/* end col */}
-                </div>
-                {/* end row */}
               </div>
             </div>
           </div>
-          {/* end col */}
         </div>
-        {/* end row */}
       </div>
-      {/* end container-fluid */}
     </div>
   );
 };
