@@ -86,7 +86,7 @@ const SettingsPane = () => {
           <img
             src="/images/4902908.jpg"
             className="profile-img profile-foreground-img"
-            style={{ height: "160px" }}
+            style={{ height: "126px" }}
             alt=""
           />
           <div className="overlay-content">

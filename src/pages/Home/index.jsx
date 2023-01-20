@@ -15,7 +15,7 @@ import { GroupDetails } from "../../App";
 export const GroupList = createContext();
 
 const Home = () => {
-  const name = useContext(GroupDetails);
+  const details = useContext(GroupDetails);
 
   const [text, setText] = useState();
   const [textError, setTextError] = useState("");
@@ -27,17 +27,17 @@ const Home = () => {
   }, []);
 
   const showHandle = () => {
-    name.setGroupName(name.currentGroupDetails.groupName);
-    name.setCheckedUser(
-      name.currentGroupDetails.groupUser.map((item, index) => item.userId)
+    details.setGroupName(details.currentGroupDetails.groupName);
+    details.setCheckedUser(
+      details.currentGroupDetails.groupUser.map((item, index) => item.userId)
     );
-    name.setCloseModal(true);
+    details.setCloseModal(true);
   };
   const closeHandle = () => {
-    name.setCloseModal(false);
-    name.setGroupName("");
-    name.setCheckedUser([]);
-    name.setGroupImage("");
+    details.setCloseModal(false);
+    details.setGroupName("");
+    details.setCheckedUser([]);
+    details.setGroupImage("");
   };
   const sendButton = (e) => {
     e.preventDefault();
@@ -54,35 +54,35 @@ const Home = () => {
   const getGroupList = async () => {
     Promise.all([groupList(data), getUsersList(data)])
       .then((response) => {
-        name.setResponseMessage("");
-        name.setUserLoader(false);
+        details.setResponseMessage("");
+        details.setUserLoader(false);
         if (response[0].success) {
-          name.setGroup(response[0].data.list);
+          details.setGroup(response[0].data.list);
           if (response[0].data.list.length < 1) {
-            name.setGroupCount("No Group Found");
+            details.setGroupCount("No Group Found");
           } else {
-            name.setGroupCount("");
+            details.setGroupCount("");
           }
         } else {
           console.log(response);
         }
         if (response[1].success) {
-          name.setMessage("");
-          name.setUsers(
+          details.setMessage("");
+          details.setUsers(
             response[1].data.list.filter((e) => e.email !== loginUser.userEmail)
           );
-          if (!name.users) {
-            name.setUserCount("No User Found");
+          if (!details.users) {
+            details.setUserCount("No User Found");
           } else {
-            name.setUserCount("");
+            details.setUserCount("");
           }
         } else {
           console.log(response);
         }
       })
       .catch((err) => {
-        name.setResponseMessage("Somthing Went Wrong");
-        name.setUserLoader(false);
+        details.setResponseMessage("Somthing Went Wrong");
+        details.setUserLoader(false);
       });
   };
   return (
@@ -101,7 +101,7 @@ const Home = () => {
         </div>
 
         <div className="user-chat w-100 overflow-hidden">
-          {name.currentGroupDetails ? (
+          {details.currentGroupDetails ? (
             <div className="chat-content d-lg-flex">
               <div className="w-100 overflow-hidden position-relative">
                 <div id="users-chat" className="position-relative">
@@ -113,24 +113,24 @@ const Home = () => {
                             <div className="d-flex align-items-center">
                               <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
                                 <img
-                                  src={`${name.groupImage
-                                      ? name.groupImage
-                                      : name.currentGroupDetails.userImg
-                                        ? name.currentGroupDetails.userImg
-                                        : name.currentGroupDetails.groupImg
+                                  src={`${details.groupImage
+                                      ? details.groupImage
+                                      : details.currentGroupDetails.userImg
+                                        ? details.currentGroupDetails.userImg
+                                        : details.currentGroupDetails.groupImg
                                     }`}
                                   className="rounded-circle avatar-sm"
                                   alt=""
                                 />
                                 <span
                                   className={
-                                    name.currentGroupDetails.userStatus ===
+                                    details.currentGroupDetails.userStatus ===
                                       "active"
                                       ? "user-status-active"
-                                      : name.currentGroupDetails.userStatus ===
+                                      : details.currentGroupDetails.userStatus ===
                                         "away"
                                         ? "user-status-away"
-                                        : name.currentGroupDetails.userStatus ===
+                                        : details.currentGroupDetails.userStatus ===
                                           "donotdisturb"
                                           ? "user-status-doNotDisturb"
                                           : ""
@@ -143,19 +143,19 @@ const Home = () => {
                                     to=""
                                     className="user-profile-show text-reset"
                                   >
-                                    {name.groupName
-                                      ? name.groupName
-                                      : name.currentGroupDetails.username
-                                        ? name.currentGroupDetails.username
-                                        : name.currentGroupDetails.groupName}
+                                    {details.groupName
+                                      ? details.groupName
+                                      : details.currentGroupDetails.username
+                                        ? details.currentGroupDetails.username
+                                        : details.currentGroupDetails.groupName}
                                   </Link>
                                 </h6>
-                                {name.currentGroupDetails.groupName ? (
+                                {details.currentGroupDetails.groupName ? (
                                   ""
                                 ) : (
                                   <p className="text-truncate text-muted mb-0">
                                     <small>
-                                      {name.currentGroupDetails.userStatus}
+                                      {details.currentGroupDetails.userStatus}
                                     </small>
                                   </p>
                                 )}
@@ -166,7 +166,7 @@ const Home = () => {
                       </div>
                       <div className="col-sm-8 col-4">
                         <ul className="list-inline user-chat-nav text-end mb-0">
-                          {name.currentGroupDetails.username ? (
+                          {details.currentGroupDetails.username ? (
                             ""
                           ) : (
                             <li className="list-inline-item">
@@ -254,13 +254,13 @@ const Home = () => {
             <div className="DefaultPage">
               <div>
                 <Avatar
-                  name={loginUser.userName[0]}
+                  details={loginUser.userName[0]}
                   size="30"
                   textSizeRatio={1.75}
                   round="20px"
                 />
               </div>
-              <div>{`Welcome! ${name.userName ? name.userName : loginUser.userName
+              <div>{`Welcome! ${details.userName ? details.userName : loginUser.userName
                 }`}</div>
               <div className="d-flex">
                 <div>
@@ -288,7 +288,7 @@ const Home = () => {
           getGroupList,
         }}
       >
-        <Modal show={name.closeModal} onHide={closeHandle} animation={false}>
+        <Modal show={details.closeModal} onHide={closeHandle} animation={false}>
           <CreateGroupModal />
         </Modal>
       </GroupList.Provider>

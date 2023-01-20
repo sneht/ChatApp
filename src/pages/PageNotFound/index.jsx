@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import "./PageNotFound.css"
 const PageNotFound = () => {
   return (
-    <main class="container">
+    <main class="Maincontainer">
       <article class="content">
         <p><strong>404</strong> Page not found </p>
         <p>

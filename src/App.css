@@ -12454,7 +12454,7 @@ fieldset:disabled .btn {
     max-height: calc(100vh - 0px);
   }
   .chat-room-list {
-    max-height: calc(100vh - 125px);
+    max-height: calc(100vh - 133px);
 }
   .flex-lg-row-reverse {
     -webkit-box-orient: horizontal !important;
@@ -12946,9 +12946,9 @@ fieldset:disabled .btn {
   .p-lg-3 {
     padding: 1rem !important;
   }
-  .p-lg-4 {
+  /* .p-lg-4 {
     padding: 1.5rem !important;
-  }
+  } */
   .p-lg-5 {
     padding: 3rem !important;
   }
