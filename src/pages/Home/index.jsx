@@ -32,10 +32,13 @@ const Home = () => {
       details.currentGroupDetails.groupUser.map((item, index) => item.userId)
     );
     details.setCloseModal(true);
+    details.setGroupDesc(details.currentGroupDetails.groupDescription);
+    details.setGroupImage(details.currentGroupDetails.groupImg);
   };
   const closeHandle = () => {
     details.setCloseModal(false);
     details.setGroupName("");
+    details.setGroupDesc("");
     details.setCheckedUser([]);
     details.setGroupImage("");
   };
@@ -113,27 +116,28 @@ const Home = () => {
                             <div className="d-flex align-items-center">
                               <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
                                 <img
-                                  src={`${details.groupImage
+                                  src={`${
+                                    details.groupImage
                                       ? details.groupImage
                                       : details.currentGroupDetails.userImg
-                                        ? details.currentGroupDetails.userImg
-                                        : details.currentGroupDetails.groupImg
-                                    }`}
+                                      ? details.currentGroupDetails.userImg
+                                      : details.currentGroupDetails.groupImg
+                                  }`}
                                   className="rounded-circle avatar-sm"
                                   alt=""
                                 />
                                 <span
                                   className={
                                     details.currentGroupDetails.userStatus ===
-                                      "active"
+                                    "active"
                                       ? "user-status-active"
-                                      : details.currentGroupDetails.userStatus ===
-                                        "away"
-                                        ? "user-status-away"
-                                        : details.currentGroupDetails.userStatus ===
-                                          "donotdisturb"
-                                          ? "user-status-doNotDisturb"
-                                          : ""
+                                      : details.currentGroupDetails
+                                          .userStatus === "away"
+                                      ? "user-status-away"
+                                      : details.currentGroupDetails
+                                          .userStatus === "donotdisturb"
+                                      ? "user-status-doNotDisturb"
+                                      : ""
                                   }
                                 />
                               </div>
@@ -146,8 +150,8 @@ const Home = () => {
                                     {details.groupName
                                       ? details.groupName
                                       : details.currentGroupDetails.username
-                                        ? details.currentGroupDetails.username
-                                        : details.currentGroupDetails.groupName}
+                                      ? details.currentGroupDetails.username
+                                      : details.currentGroupDetails.groupName}
                                   </Link>
                                 </h6>
                                 {details.currentGroupDetails.groupName ? (
@@ -234,7 +238,7 @@ const Home = () => {
                               <button
                                 type="submit"
                                 className="btn btn-primary btn-lg chat-send waves-effect waves-light"
-                              // onSubmit={() => sendButton()}
+                                // onSubmit={() => sendButton()}
                               >
                                 <i
                                   className="bx bxs-send align-middle"
@@ -253,15 +257,11 @@ const Home = () => {
           ) : (
             <div className="DefaultPage">
               <div>
-                <Avatar
-                  details={loginUser.userName[0]}
-                  size="30"
-                  textSizeRatio={1.75}
-                  round="20px"
-                />
+                <Avatar name={loginUser.userName[0]} size="50" round="30px" />
               </div>
-              <div>{`Welcome! ${details.userName ? details.userName : loginUser.userName
-                }`}</div>
+              <div>{`Welcome! ${
+                details.userName ? details.userName : loginUser.userName
+              }`}</div>
               <div className="d-flex">
                 <div>
                   <img

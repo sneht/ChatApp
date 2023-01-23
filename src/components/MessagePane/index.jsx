@@ -62,7 +62,7 @@ const MessagePane = () => {
   };
   return (
     <div
-      className={`tab-pane show ${location.search === "?chat" ? "active" : location.search === '' ? "active" : ""} `}
+      className={`tab-pane show ${location.search === '' ? "active" : ""} `}
       id="pills-chat"
       role="tabpanel"
       aria-labelledby="pills-chat-tab"
@@ -266,7 +266,7 @@ const MessagePane = () => {
             <div className="d-flex align-items-center px-4 mt-5 mb-2">
               <div className="flex-grow-1">
                 <h4 className="mb-0 fs-11 text-muted text-uppercase">
-                  {details.userLoader ||details.responseMessage? "" : "Groups"}
+                  {details.userLoader || details.responseMessage ? "" : "Groups"}
                 </h4>
               </div>
               <div className="flex-shrink-0">

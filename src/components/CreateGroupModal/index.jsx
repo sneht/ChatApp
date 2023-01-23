@@ -16,10 +16,11 @@ const CreateGroupModal = () => {
 
   const [loader, setLoader] = useState(false);
   const [groupNameError, setGroupNameError] = useState("");
+
   const [groupImg, setGroupImg] = useState();
   const [groupImgError, setGroupImgError] = useState("");
   const [checkedUserError, setCheckedUserError] = useState("");
-  const [groupDesc, setGroupDesc] = useState();
+
   const [groupDescError, setGroupDescError] = useState();
   let admin = JSON.parse(localStorage.getItem("userData"));
 
@@ -31,19 +32,24 @@ const CreateGroupModal = () => {
     } else {
       setGroupNameError("");
     }
-    if (!groupImg) {
+    if (!name.groupImage) {
       setGroupImgError("Please select Image");
       isValid = false;
     } else {
       setGroupImgError("");
     }
-    if (name.checkedUser.length === 0) {
+    if (name.checkedUser.length < 1) {
       setCheckedUserError("Please select Users");
       isValid = false;
-    } else {
+    }
+    // else if (!name.checkedUser) {
+    //   setCheckedUserError("Please select Users");
+    //   isValid = false;
+    // }
+    else {
       setCheckedUserError("");
     }
-    if (!groupDesc) {
+    if (!name.groupDesc) {
       setGroupDescError("Please enter Description");
       isValid = false;
     } else {
@@ -68,7 +74,7 @@ const CreateGroupModal = () => {
         )
       );
       formData.append("groupImg", groupImg);
-      formData.append("groupDescription", groupDesc);
+      formData.append("groupDescription", name.groupDesc);
       const response = await createGroup(formData);
       if (response.success) {
         setLoader(false);
@@ -85,6 +91,7 @@ const CreateGroupModal = () => {
     name.setCloseModal(false);
     name.setGroupName("");
     name.setCheckedUser([]);
+    name.setGroupDesc("");
     name.setGroupImage("");
     name.setButtonCheck("");
   };
@@ -96,72 +103,69 @@ const CreateGroupModal = () => {
       name.setCheckedUser(name.checkedUser.filter((e) => e !== value));
     }
   };
+
   const EditGroupdetailsHandle = async () => {
-    if (name.groupImage) {
-      setLoader(true);
-      let formData = new FormData();
-      formData.append("groupImg", groupImg);
-      formData.append(
-        "groupName",
-        name.groupName ? name.groupName : name.currentGroupDetails.groupName
-      );
-      formData.append(
-        "groupUser",
-        JSON.stringify(
-          name.checkedUser.map((item, index) => {
+    if (validation()) {
+      if (groupImg) {
+        setLoader(true);
+        let formData = new FormData();
+        formData.append("groupImg", groupImg);
+        formData.append("groupName", name.groupName);
+        formData.append(
+          "groupUser",
+          JSON.stringify(
+            name.checkedUser.map((item, index) => {
+              return {
+                userId: item,
+              };
+            })
+          )
+        );
+        formData.append("groupDescription", name.groupDesc);
+        const response = await editGroupdetailsImage(
+          formData,
+          name.currentGroupDetails._id
+        );
+        if (response.success) {
+          setLoader(false);
+          name.setCurrentGroupDetails(response.data);
+          name.setGroupImage("");
+          closeHandle();
+          details.getGroupList();
+        } else {
+          setLoader(false);
+          console.log(response);
+        }
+      } else {
+        setLoader(true);
+        let body = {
+          groupUser: name.checkedUser.map((item, index) => {
             return {
               userId: item,
             };
-          })
-        )
-      );
-      formData.append(
-        "groupDescription",
-        groupDesc ? groupDesc : name.currentGroupDetails.groupDescription
-      );
-      const response = await editGroupdetailsImage(
-        formData,
-        name.currentGroupDetails._id
-      );
-      if (response.success) {
-        setLoader(false);
-        name.setCurrentGroupDetails(response.data);
-        name.setGroupImage("");
-        closeHandle();
-        details.getGroupList();
-      } else {
-        setLoader(false);
-        console.log(response);
-      }
-    } else {
-      setLoader(true);
-      let body = {
-        groupUser: name.checkedUser.map((item, index) => {
-          return {
-            userId: item,
-          };
-        }),
+          }),
 
-        groupDescription: groupDesc,
-        groupAdmin: admin.id,
-        groupName: name.groupName,
-        isActive: true,
-      };
-      const response = await editGroupdetails(
-        body,
-        name.currentGroupDetails._id
-      );
-      if (response.success) {
-        name.setCurrentGroupDetails(response.data);
-        name.setGroupName("");
-        setLoader(false);
-        closeHandle();
-        details.getGroupList();
-        setGroupImg();
-        setGroupDesc("");
-      } else {
-        setLoader(false);
-        console.log(response.message);
+          groupDescription: name.groupDesc,
+          groupAdmin: admin.id,
+          groupName: name.groupName,
+          isActive: true,
+        };
+        const response = await editGroupdetails(
+          body,
+          name.currentGroupDetails._id
+        );
+        if (response.success) {
+          name.setCurrentGroupDetails(response.data);
+          name.setGroupName("");
+          setLoader(false);
+          closeHandle();
+          details.getGroupList();
+          setGroupImg();
+          name.setGroupDesc("");
+        } else {
+          setLoader(false);
+          console.log(response.message);
+        }
       }
     }
   };
@@ -193,13 +197,9 @@ const CreateGroupModal = () => {
                   <img
                     className="fileDownload"
                     src={
-                      name.buttonCheck
-                        ? groupImg
-                          ? name.groupImage
-                          : "/images/Default-Image-removebg-preview.png"
-                        : groupImg
-                          ? name.groupImage
-                          : name.currentGroupDetails.groupImg
+                      name.groupImage
+                        ? name.groupImage
+                        : "/images/Default-Image-removebg-preview.png"
                     }
                     alt=""
                   />
@@ -313,16 +313,12 @@ const CreateGroupModal = () => {
                   className="form-control"
                   id="addgroupdescription-input"
                   placeholder="Enter Description"
-                  defaultValue={
-                    name.buttonCheck
-                      ? ""
-                      : name.currentGroupDetails.groupDescription
-                  }
+                  defaultValue={name.groupDesc}
                   onChange={(e) => [
-                    setGroupDesc(e.target.value),
+                    name.setGroupDesc(e.target.value),
                     setGroupDescError(""),
                   ]}
-                  value={groupDesc}
+                  value={name.groupDesc}
                 />
                 <div className="error">{groupDescError}</div>
               </div>

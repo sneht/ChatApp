@@ -9,16 +9,16 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { GroupDetails } from "../../App";
 
-
 const SideBar = () => {
   const location = useLocation();
 
-  const image = useContext(GroupDetails);
+  const details = useContext(GroupDetails);
   const img = JSON.parse(localStorage.getItem("userData"));
   const logOut = () => {
+    details.setCurrentId("");
+    details.currentGroupDetails("");
     localStorage.clear();
   };
-
   return (
     <>
       <div className="navbar-brand-box">
@@ -41,7 +41,9 @@ const SideBar = () => {
           <li className="nav-item">
             <Link to="">
               <button
-                className={`nav-link   ${location.search === "" ? "active" : ""} `}
+                className={`nav-link   ${
+                  location.search === "" ? "active" : ""
+                } `}
                 id="pills-chat-tab"
                 data-bs-toggle="pill"
                 data-bs-target="#pills-chat"
@@ -54,7 +56,9 @@ const SideBar = () => {
           <li className="nav-item">
             <Link to="?contactList">
               <button
-                className={`nav-link ${location.search === "?contactList" ? "active" : ""} `}
+                className={`nav-link ${
+                  location.search === "?contactList" ? "active" : ""
+                } `}
                 id="pills-contacts-tab"
                 data-bs-toggle="pill"
                 data-bs-target="#pills-contacts"
@@ -67,7 +71,9 @@ const SideBar = () => {
           <li className="nav-item">
             <Link to="?profile">
               <button
-                className={`nav-link ${location.search === "?profile" ? "active" : ""} `}
+                className={`nav-link ${
+                  location.search === "?profile" ? "active" : ""
+                } `}
                 id="pills-user-tab"
                 data-bs-toggle="pill"
                 data-bs-target="#pills-user"
@@ -80,7 +86,9 @@ const SideBar = () => {
           <li className="nav-item d-none d-lg-block">
             <Link to="?setting">
               <button
-                className={`nav-link ${location.search === "?setting" ? "active" : ""} `}
+                className={`nav-link ${
+                  location.search === "?setting" ? "active" : ""
+                } `}
                 id="pills-setting-tab"
                 data-bs-toggle="pill"
                 data-bs-target="#pills-setting"
@@ -90,11 +98,6 @@ const SideBar = () => {
               </button>
             </Link>
           </li>
-          {/* <li className="nav-item mt-lg-auto">
-            <Link className="nav-link light-dark-mode" to="">
-              <RiMoonLine />
-            </Link>
-          </li> */}
           <li className="nav-item dropdown profile-user-dropdown">
             <button
               className="nav-link bg-light"
@@ -103,28 +106,12 @@ const SideBar = () => {
               aria-expanded="false"
             >
               <img
-                src={image.userImage ? image.userImage : img.img}
+                src={details.userImage ? details.userImage : img.img}
                 alt=""
                 className="profile-user rounded-circle"
               />
             </button>
             <div className="dropdown-menu">
-              {/* <Link
-                className="dropdown-item d-flex align-items-center justify-content-between"
-                id="pills-user-tab"
-                data-bs-toggle="pill"
-                to="#pills-user"
-              >
-                Profile <i className="bx bx-user-circle text-muted ms-1" />
-              </Link>
-              <Link
-                className="dropdown-item d-flex align-items-center justify-content-between"
-                id="pills-setting-tab"
-                data-bs-toggle="pill"
-                to="#pills-setting"
-              >
-                Setting <i className="bx bx-cog text-muted ms-1" />
-              </Link> */}
               <Link
                 className="dropdown-item d-flex align-items-center justify-content-between"
                 to="/changepassword"

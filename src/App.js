@@ -27,7 +27,7 @@ function App() {
   const [groupName, setGroupName] = useState();
   const [checkedUser, setCheckedUser] = useState([]);
   const [groupImage, setGroupImage] = useState();
-
+  const [groupDesc, setGroupDesc] = useState();
   const [currentGroupDetails, setCurrentGroupDetails] = useState();
   const [closeModal, setCloseModal] = useState(false);
   const [buttonCheck, setButtonCheck] = useState("");
@@ -43,6 +43,8 @@ function App() {
         setResponseMessage,
         userCount,
         setUserCount,
+        groupDesc,
+        setGroupDesc,
         users,
         setUsers,
         closeModal,

@@ -34,12 +34,12 @@ const ChangePassword = () => {
         setNewPasswordError("");
       }
       if (!confirmNewPassword) {
-        setConfirmNewPasswordError("please enter password");
+        setConfirmNewPasswordError("Please enter Confirm password");
         isvalid = false;
       } else if (confirmNewPassword === newPassword) {
         setConfirmNewPasswordError("");
       } else {
-        setConfirmNewPasswordError("please enter same password");
+        setConfirmNewPasswordError("Please enter same password");
         isvalid = false;
       }
       return isvalid;

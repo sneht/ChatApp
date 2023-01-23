@@ -32,7 +32,7 @@ const Login = () => {
       localStorage.setItem("accessToken", resp.data.token);
       localStorage.setItem("userName", resp.data.username);
       localStorage.setItem("userEmail", resp.data.email);
-      localStorage.setItem("id", resp.data.data.id);
+      localStorage.setItem("id", resp.data.id);
       navigate("/");
     }
   };
@@ -79,6 +79,7 @@ const Login = () => {
       if (response.success) {
         userimage.setUserImage(response.data.userImg);
         userimage.setUserName(response.data.username);
+        // userimage.setUserDetails("hello")
         setLoader(false);
         const userData = {
           id: response.data._id,
@@ -174,11 +175,14 @@ const Login = () => {
                             </div>
                           </div>
 
+
                           <div className="text-center mt-4">
                             <button
                               className="btn btn-primary w-100"
                               type="submit"
                             >
+                              {/* <Link to={`?n=${userimage.userName}`}>
+                              </Link> */}
                               {loader ? (
                                 <div className="spinner-border" role="status">
                                   <span className="sr-only"></span>
