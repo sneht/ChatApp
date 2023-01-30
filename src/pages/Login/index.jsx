@@ -184,13 +184,13 @@ const Login = () => {
                         >
                           {forgotPasswordShow ? (
                             <>
-                              <label htmlFor="username" className="form-label">
+                              <label htmlFor="email" className="form-label">
                                 Email
                               </label>
                               <input
                                 type="email"
                                 className="form-control"
-                                id="username"
+                                id="email"
                                 placeholder="Enter Email"
                                 value={email}
                                 onChange={(e) => [
