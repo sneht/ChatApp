@@ -4,7 +4,7 @@ import Home from "./pages/Home";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Protect from "./components/Protect";
+import Protect from "./utils/protect";
 import PageNotFound from "./pages/PageNotFound";
 import Logout from "./pages/Logout";
 import Verify from "./pages/VerifyEmail";
@@ -23,11 +23,12 @@ function App() {
   const [groupCount, setGroupCount] = useState();
   const [userLoader, setUserLoader] = useState(true);
   const [userCount, setUserCount] = useState();
-
   const [groupName, setGroupName] = useState();
   const [checkedUser, setCheckedUser] = useState([]);
   const [groupImage, setGroupImage] = useState();
   const [groupDesc, setGroupDesc] = useState();
+  const [groupLength, setGroupLength] = useState(10);
+  const [userListLength, setUserListLength] = useState(10)
   const [currentGroupDetails, setCurrentGroupDetails] = useState();
   const [closeModal, setCloseModal] = useState(false);
   const [buttonCheck, setButtonCheck] = useState("");
@@ -69,6 +70,10 @@ function App() {
         setUserLoader,
         groupCount,
         setGroupCount,
+        userListLength,
+        setUserListLength,
+        groupLength,
+        setGroupLength
       }}
     >
       <div>

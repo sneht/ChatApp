@@ -1,4 +1,4 @@
-import { ENDPOINT } from "../helper";
+import { ENDPOINT } from "../utils/helper";
 import { post, patch, put } from "./web.request";
 
 // Login Api
@@ -49,3 +49,7 @@ export const editGroupdetails = (body, currentGroupId) => {
 export const editGroupdetailsImage = (body, currentGroupId) => {
   return put(`${ENDPOINT}api/v1/group/${currentGroupId}`, body);
 };
+// Forgot Password 
+export const forgotPassword=(body)=>{
+  return post(`${ENDPOINT}api/v1/user/forgotPassword`,body);
+}

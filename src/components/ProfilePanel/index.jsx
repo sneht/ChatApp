@@ -5,11 +5,11 @@ import "simplebar/dist/simplebar.css";
 import { GroupDetails } from "../../App";
 import { useLocation } from "react-router-dom";
 
-const ProfilePane = () => {
+const ProfilePanel = () => {
   const location = useLocation();
-
   const details = useContext(GroupDetails);
   const userDetails = JSON.parse(localStorage.getItem("userData"));
+
   return (
     <div
       className={`tab-pane ${location.search === "?profile" ? "active" : ""} `}
@@ -19,12 +19,7 @@ const ProfilePane = () => {
     >
       <div>
         <div className="user-profile-img">
-          <img
-            src="/images/4902908.jpg"
-            className="profile-img"
-            style={{ height: "126px" }}
-            alt=""
-          />
+          <img src="/images/4902908.jpg" className="profile-img" alt="" />
           <div className="overlay-content">
             <div>
               <div className="user-chat-nav p-2 ps-3">
@@ -52,11 +47,7 @@ const ProfilePane = () => {
             Front end Developer
           </p>
         </div>
-        <div
-          className="p-4 profile-desc"
-          data-simplebar
-          style={{ height: "calc(100vh - 72vh)" }}
-        >
+        <div className="p-4 profile-desc" data-simplebar>
           <div className="text-muted">
             <p className="mb-3">
               A professional profile is an introductory section on your resume
@@ -89,4 +80,4 @@ const ProfilePane = () => {
   );
 };
 
-export default ProfilePane;
+export default ProfilePanel;

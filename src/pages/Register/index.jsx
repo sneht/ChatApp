@@ -3,13 +3,12 @@ import React, { useState, useEffect } from "react";
 import { RiEyeFill, RiEyeOffFill } from "react-icons/ri";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router";
-import { registerHandle } from "../../components/auth.request";
-
+import { registerHandle } from "../../service/auth.request";
 import jwtDecode from "jwt-decode";
 
 const Register = () => {
+  localStorage.clear();
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [userName, setUserName] = useState("");
@@ -19,12 +18,14 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState();
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [message, setMessage] = useState("");
-  const [loader, setloader] = useState(false);
+  const [loader, setLoader] = useState(false);
   const [passManage, setPassManage] = useState(false);
   const [cPassManage, setCPassManage] = useState(false);
   const [userImage, setUserImage] = useState();
   const [userImageError, setUserImageError] = useState("");
   const [showUserImg, setShowUserImg] = useState();
+  const [imageSizeError, setImageSizeError] = useState("");
+  const [catchMessage, setCatchMessage] = useState();
 
   const handleCallbackResponse = async (response) => {
     var userObject = jwtDecode(response.credential);
@@ -36,13 +37,17 @@ const Register = () => {
       email: email,
       password: password,
     };
-    const res = await registerHandle(data);
-    if (res.success) {
-      setloader(false);
-      navigate("/verify");
-    } else {
-      setMessage(res.message);
-      setloader(false);
+    try {
+      const res = await registerHandle(data);
+      if (res.success) {
+        setLoader(false);
+        navigate("/verify");
+      } else {
+        setMessage(res.message);
+        setLoader(false);
+      }
+    } catch {
+      console.error("Somthing went wrong");
     }
   };
 
@@ -61,10 +66,15 @@ const Register = () => {
 
   const validation = () => {
     let userIsValid = true;
+    let imageSize = 5242880;
     if (!userImage) {
       setUserImageError("Please select Image");
       userIsValid = false;
+    } else if (userImage.size > imageSize) {
+      setImageSizeError("Please Select Image Under 5 MB");
+      userIsValid = false;
     } else {
+      setImageSizeError("");
       setUserImageError("");
     }
     if (email) {
@@ -99,22 +109,29 @@ const Register = () => {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (validation()) {
-      setloader(true);
-      let formData = new FormData();
-      formData.append("username", userName);
-      formData.append("email", email);
-      formData.append("password", password);
-      formData.append("userImg", userImage);
-      const response = await registerHandle(formData);
-
-      if (response.success) {
-        setloader(false);
-        navigate("/verify");
-      } else {
-        setloader(false);
-        setMessage(response.message);
+    try {
+      if (validation()) {
+        setLoader(true);
+        let formData = new FormData();
+        formData.append("username", userName);
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("userImg", userImage);
+        const response = await registerHandle(formData);
+        if (response) {
+          setLoader(false);
+          if (response.success) {
+            navigate("/verify");
+          } else {
+            setMessage(response.message);
+          }
+        } else {
+          setLoader(false);
+        }
       }
+    } catch {
+      setLoader(false);
+      setCatchMessage("Somthing went wrong");
     }
   };
 
@@ -144,22 +161,9 @@ const Register = () => {
                                   : "/images/users/user-dummy-img.jpg"
                               }
                               className="rounded-circle avatar-lg img-thumbnail user-profile-image"
-                              style={{
-                                display: "block",
-                                marginLeft: "auto",
-                                marginRight: "auto",
-                              }}
                               alt=""
                             />
-                            <div
-                              className="avatar-xs p-0 rounded-circle "
-                              style={{
-                                display: "block",
-                                marginLeft: "55%",
-                                marginTop: "-8%",
-                                marginRight: "auto",
-                              }}
-                            >
+                            <div className="avatar-xs p-0 rounded-circle selectFile">
                               <input
                                 id="profile-img-file-input"
                                 type="file"
@@ -170,6 +174,8 @@ const Register = () => {
                                     URL.createObjectURL(e.target.files[0])
                                   ),
                                   setUserImageError(""),
+                                  setImageSizeError(""),
+                                  setCatchMessage(""),
                                 ]}
                               />
                               <label
@@ -181,12 +187,16 @@ const Register = () => {
                                 </span>
                               </label>
                             </div>
-                            <div
-                              className="error"
-                              style={{ textAlign: "center" }}
-                            >
-                              {userImageError}
-                            </div>
+                            {userImageError ? (
+                              <div className="imgerror">{userImageError}</div>
+                            ) : (
+                              ""
+                            )}
+                            {imageSizeError ? (
+                              <div className="imgerror">{imageSizeError}</div>
+                            ) : (
+                              ""
+                            )}
                           </label>
                           <div className="mb-3">
                             <label htmlFor="useremail" className="form-label">
@@ -200,9 +210,14 @@ const Register = () => {
                               onChange={(e) => [
                                 setEmail(e.target.value),
                                 setEmailError(""),
+                                setCatchMessage(""),
                               ]}
                             />
-                            <div className="error">{emailError}</div>
+                            {emailError ? (
+                              <div className="error">{emailError}</div>
+                            ) : (
+                              ""
+                            )}
                           </div>
                           <div className="mb-3">
                             <label htmlFor="username" className="form-label">
@@ -217,9 +232,14 @@ const Register = () => {
                               onChange={(e) => [
                                 setUserName(e.target.value),
                                 setUserNameError(""),
+                                setCatchMessage(""),
                               ]}
                             />
-                            <div className="error">{userNameError}</div>
+                            {userNameError ? (
+                              <div className="error">{userNameError}</div>
+                            ) : (
+                              ""
+                            )}
                           </div>
 
                           <div className="mb-3">
@@ -239,6 +259,7 @@ const Register = () => {
                                 onChange={(e) => [
                                   setPassword(e.target.value),
                                   setPasswordError(""),
+                                  setCatchMessage(""),
                                 ]}
                               />
                               <button
@@ -253,7 +274,11 @@ const Register = () => {
                               >
                                 {passManage ? <RiEyeFill /> : <RiEyeOffFill />}
                               </button>
-                              <div className="error">{passwordError}</div>
+                              {passwordError ? (
+                                <div className="error">{passwordError}</div>
+                              ) : (
+                                ""
+                              )}
                             </div>
                           </div>
                           <div className="mb-3">
@@ -273,6 +298,7 @@ const Register = () => {
                                 onChange={(e) => [
                                   setConfirmPassword(e.target.value),
                                   setConfirmPasswordError(""),
+                                  setCatchMessage(""),
                                 ]}
                               />
                               <button
@@ -287,12 +313,15 @@ const Register = () => {
                               >
                                 {cPassManage ? <RiEyeFill /> : <RiEyeOffFill />}
                               </button>
-                              <div className="error">
-                                {confirmPasswordError}
-                              </div>
+                              {confirmPasswordError ? (
+                                <div className="error">
+                                  {confirmPasswordError}
+                                </div>
+                              ) : (
+                                ""
+                              )}
                             </div>
                           </div>
-
                           <div className="mb-3">
                             <button
                               className="btn btn-primary w-100 waves-effect waves-light"
@@ -307,9 +336,20 @@ const Register = () => {
                               )}
                             </button>
                           </div>
-                          <div className="error text-center mt-1">
-                            {message}
-                          </div>
+                          {message ? (
+                            <div className="error text-center mt-1">
+                              {message}
+                            </div>
+                          ) : (
+                            ""
+                          )}
+                          {catchMessage ? (
+                            <div className="error text-center mt-1">
+                              {catchMessage}
+                            </div>
+                          ) : (
+                            ""
+                          )}
                           <div className="mt-4 text-center">
                             <div className="signin-other-title">
                               <h5 className="fs-14 mb-4 title">
@@ -317,20 +357,12 @@ const Register = () => {
                               </h5>
                             </div>
                             <div className="row">
-                              <div
-                                className="col-6"
-                                style={{
-                                  display: "block",
-                                  marginLeft: "auto",
-                                  marginRight: "auto",
-                                }}
-                              >
+                              <div className="col-6 googleLogin">
                                 <div id="signInDiv"></div>
                               </div>
                             </div>
                           </div>
                         </form>
-                        {/* end form */}
                         <div className="mt-5 text-center text-muted">
                           <p>
                             Already have an account ?
@@ -344,16 +376,12 @@ const Register = () => {
                         </div>
                       </div>
                     </div>
-                    {/* end col */}
                   </div>
                 </div>
               </div>
             </div>
-            {/* end col */}
           </div>
-          {/* end row */}
         </div>
-        {/* end container-fluid */}
       </div>
     </div>
   );

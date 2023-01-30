@@ -1,27 +1,22 @@
 import React, { useState } from "react";
 import { RiEyeFill, RiEyeOffFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
-import { changePassword, checkPassword } from "../../components/auth.request";
+import { changePassword, checkPassword } from "../../service/auth.request";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const ChangePassword = () => {
   const navigate = useNavigate();
-
   const [passShow, setPassShow] = useState(false);
   const [ConfirmPassShow, setConfirmPassShow] = useState(false);
-
   const [passwordMatch, setPasswordMatch] = useState(false);
-
   const [oldPassword, setOldPassword] = useState();
   const [oldPasswordError, setOldPasswordError] = useState("");
-
   const [newPassword, setNewPassword] = useState();
   const [newPasswordError, setNewPasswordError] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState();
   const [confirmNewPasswordError, setConfirmNewPasswordError] = useState("");
   const [loader, setloader] = useState(false);
-
   const userName = JSON.parse(localStorage.getItem("userData"));
 
   const validation = () => {
@@ -94,6 +89,7 @@ const ChangePassword = () => {
   const cancelHandle = () => {
     navigate("/");
   };
+
   return (
     <div className="auth-bg">
       <div className="container p-0">
@@ -139,7 +135,13 @@ const ChangePassword = () => {
                                     setNewPasswordError(""),
                                   ]}
                                 />
-                                <div className="error">{newPasswordError}</div>
+                                {newPasswordError ? (
+                                  <div className="error">
+                                    {newPasswordError}
+                                  </div>
+                                ) : (
+                                  ""
+                                )}
                                 <button
                                   className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
                                   type="button"
@@ -150,11 +152,7 @@ const ChangePassword = () => {
                                       : setPassShow(true)
                                   }
                                 >
-                                  {passShow ? (
-                                    <RiEyeFill />
-                                  ) : (
-                                    <RiEyeOffFill />
-                                  )}
+                                  {passShow ? <RiEyeFill /> : <RiEyeOffFill />}
                                 </button>
                               </div>
                             </div>
@@ -178,7 +176,13 @@ const ChangePassword = () => {
                                     setConfirmNewPasswordError(""),
                                   ]}
                                 />
-                                <div className="error">{confirmNewPasswordError}</div>
+                                {confirmNewPasswordError ? (
+                                  <div className="error">
+                                    {confirmNewPasswordError}
+                                  </div>
+                                ) : (
+                                  ""
+                                )}
                                 <button
                                   className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
                                   type="button"
@@ -217,7 +221,11 @@ const ChangePassword = () => {
                               ]}
                               placeholder="Enter Old Password"
                             />
-                            <div className="error">{oldPasswordError}</div>
+                            {oldPasswordError ? (
+                              <div className="error">{oldPasswordError}</div>
+                            ) : (
+                              ""
+                            )}
                           </div>
                         )}
                         <div className="text-center mt-4">
@@ -226,7 +234,6 @@ const ChangePassword = () => {
                               <button
                                 className="btn btn-primary w-100"
                                 type="submit"
-                              // onSubmit={() => passWordHandle()}
                               >
                                 {loader ? (
                                   <div className="spinner-border" role="status">

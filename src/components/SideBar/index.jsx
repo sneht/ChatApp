@@ -4,21 +4,23 @@ import {
   RiContactsBookLine,
   RiDiscussLine,
   RiUser3Line,
-  // RiMoonLine,
 } from "react-icons/ri";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { GroupDetails } from "../../App";
 
 const SideBar = () => {
   const location = useLocation();
-
+  const navigate = useNavigate();
   const details = useContext(GroupDetails);
   const img = JSON.parse(localStorage.getItem("userData"));
+
   const logOut = () => {
+    localStorage.clear();
     details.setCurrentId("");
     details.currentGroupDetails("");
-    localStorage.clear();
+    navigate("/logout");
   };
+
   return (
     <>
       <div className="navbar-brand-box">
@@ -41,7 +43,7 @@ const SideBar = () => {
           <li className="nav-item">
             <Link to="">
               <button
-                className={`nav-link   ${
+                className={`nav-link ${
                   location.search === "" ? "active" : ""
                 } `}
                 id="pills-chat-tab"
@@ -120,13 +122,12 @@ const SideBar = () => {
                 <i className="bx bx-lock-open text-muted ms-1" />
               </Link>
               <div className="dropdown-divider" />
-              <Link
+              <button
                 className="dropdown-item d-flex align-items-center justify-content-between"
-                to="/logout"
                 onClick={() => logOut()}
               >
                 Log out <i className="bx bx-log-out-circle text-muted ms-1" />
-              </Link>
+              </button>
             </div>
           </li>
         </ul>

@@ -1,15 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext, useEffect, useState } from "react";
 import { GroupDetails } from "../../App";
-import { updateUser, updateUserImg } from "../auth.request";
+import { updateUser, updateUserImg } from "../../service/auth.request";
 import { useLocation } from "react-router-dom";
-import { emailRegex, unameRegex } from "../../helper";
+import { emailRegex, unameRegex } from "../../utils/helper";
 
-const SettingsPane = () => {
+const SettingsPanel = () => {
   const location = useLocation();
   const details = useContext(GroupDetails);
   const userDetails = JSON.parse(localStorage.getItem("userData"));
-
   const [userName, setUserName] = useState();
   const [userNameError, setUserNameError] = useState("");
   const [userEmail, setUserEmail] = useState();
@@ -17,6 +16,7 @@ const SettingsPane = () => {
   const [userImage, setUserImage] = useState();
   const [showUserImg, setShowUserImg] = useState();
   const [loader, setLoader] = useState(false);
+  const [userStatus, setUserStatus] = useState("");
 
   const validation = () => {
     let isValid = true;
@@ -48,7 +48,9 @@ const SettingsPane = () => {
   const updateUserButton = async (status) => {
     if (validation()) {
       if (userImage) {
-        setLoader(true);
+        if (!status) {
+          setLoader(true);
+        }
         let formData = new FormData();
         formData.append("userImg", userImage ? userImage : userDetails.userImg);
         formData.append("username", userName);
@@ -56,10 +58,10 @@ const SettingsPane = () => {
         formData.append("userStatus", status ? status : userDetails.userStatus);
         formData.append("isActive", true);
         const res = await updateUserImg(formData, userDetails.id);
-
         if (res.success) {
           details.setUserImage(res.data.userImg);
           details.setUserName(res.data.username);
+          setUserStatus(res.data.userStatus);
           const userData = {
             id: res.data._id,
             img: res.data.userImg,
@@ -69,12 +71,13 @@ const SettingsPane = () => {
           };
           localStorage.setItem("userData", JSON.stringify(userData));
           setLoader(false);
-          // setUserStatus(res.data.userStatus);
         } else {
           setLoader(false);
         }
       } else {
-        setLoader(true);
+        if (!status) {
+          setLoader(true);
+        }
         let body = {
           username: userName,
           email: userEmail,
@@ -82,9 +85,9 @@ const SettingsPane = () => {
         };
         const response = await updateUser(body, userDetails.id);
         if (response.success) {
-          details.setUserName(response.data.username);
           setLoader(false);
-          // setUserName(response.data.userName);
+          details.setUserName(response.data.username);
+          setUserStatus(response.data.userStatus);
           const userData = {
             id: response.data._id,
             img: response.data.userImg,
@@ -93,7 +96,6 @@ const SettingsPane = () => {
             userStatus: response.data.userStatus,
           };
           localStorage.setItem("userData", JSON.stringify(userData));
-          // setUserStatus(response.data.userStatus);
           setUserImage(response.data.img);
         } else {
           setLoader(false);
@@ -102,6 +104,7 @@ const SettingsPane = () => {
       }
     }
   };
+
   return (
     <div
       className={`tab-pane ${location.search === "?setting" ? "active" : ""}`}
@@ -114,7 +117,6 @@ const SettingsPane = () => {
           <img
             src="/images/4902908.jpg"
             className="profile-img profile-foreground-img"
-            style={{ height: "126px" }}
             alt=""
           />
           <div className="overlay-content">
@@ -175,53 +177,34 @@ const SettingsPane = () => {
                     : userDetails.userStatus === "donotdisturb"
                     ? "bx bxs-circle text-danger fs-10 me-1 align-middle"
                     : ""
-                  // || userDetails.userStatus === "active"
-                  //   ? "bx bxs-circle text-success fs-10 me-1 align-middle"
-                  //   : userStatus || userDetails.userStatus === "away"
-                  //     ? "bx bxs-circle text-warning fs-10 me-1 align-middle"
-                  //     : userStatus || userDetails.userStatus === "donotdisturb"
-                  //       ? "bx bxs-circle text-danger fs-10 me-1 align-middle"
-                  //       : ""
                 }
               />
-              {userDetails.userStatus}
+              {userStatus === "donotdisturb"
+                ? "Do Not Disturb"
+                : userStatus
+                ? userStatus
+                : userDetails.userStatus === "donotdisturb"
+                ? "Do Not Disturb"
+                : userDetails.userStatus}
             </a>
             <div className="dropdown-menu">
               <button
                 className="dropdown-item"
-                onClick={() => [
-                  // setUserStatus("active"),
-                  updateUserButton("active"),
-                  // setStatusIcon(
-                  //   "bx bxs-circle text-success fs-10 me-1 align-middle"
-                  // ),
-                ]}
+                onClick={() => updateUserButton("active")}
               >
                 <i className="bx bxs-circle text-success fs-10 me-1 align-middle" />
                 Active
               </button>
               <button
                 className="dropdown-item"
-                onClick={() => [
-                  // setUserStatus
-                  updateUserButton("away"),
-                  // setStatusIcon(
-                  //   "bx bxs-circle text-warning fs-10 me-1 align-middle"
-                  // ),
-                ]}
+                onClick={() => updateUserButton("away")}
               >
                 <i className="bx bxs-circle text-warning fs-10 me-1 align-middle" />
                 Away
               </button>
               <button
                 className="dropdown-item"
-                onClick={() => [
-                  // setUserStatus
-                  updateUserButton("donotdisturb"),
-                  // setStatusIcon(
-                  //   "bx bxs-circle text-danger fs-10 me-1 align-middle"
-                  // ),
-                ]}
+                onClick={() => updateUserButton("donotdisturb")}
               >
                 <i className="bx bxs-circle text-danger text-uppercase fs-10 me-1 align-middle" />
                 Do Not Disturb
@@ -229,11 +212,7 @@ const SettingsPane = () => {
             </div>
           </div>
         </div>
-        <div
-          className="user-setting"
-          data-simplebar
-          style={{ height: "calc(33vh)" }}
-        >
+        <div className="user-setting" data-simplebar>
           <div id="settingprofile" className="accordion accordion-flush">
             <div className="accordion-item">
               <div
@@ -256,13 +235,14 @@ const SettingsPane = () => {
                       ]}
                       placeholder="Enter name"
                     />
-                    <div className="error">{userNameError}</div>
+                    {userNameError ? (
+                      <div className="error">{userNameError}</div>
+                    ) : (
+                      ""
+                    )}
                   </div>
                   <div>
-                    <label
-                      className="form-label text-muted fs-13"
-                      style={{ marginTop: "5px" }}
-                    >
+                    <label className="form-label text-muted fs-13 mt-1">
                       Email
                     </label>
                     <input
@@ -275,27 +255,24 @@ const SettingsPane = () => {
                       ]}
                       placeholder="Enter email"
                     />
-                    <div className="error">{userEmailError}</div>
+                    {userEmailError ? (
+                      <div className="error">{userEmailError}</div>
+                    ) : (
+                      ""
+                    )}
                   </div>
                   <div className="text-center mt-4">
                     <div className="row">
                       <div className="col-6">
                         <button
-                          className="btn btn-primary w-100"
+                          className="btn btn-primary w-100 groupCreateButton"
                           type="submit"
                           onClick={() => updateUserButton()}
-                          style={{ width: "27%", height: "37px" }}
                         >
                           {loader ? (
                             <div
-                              className="spinner-border"
+                              className="spinner-border-setting"
                               role="status"
-                              style={{
-                                display: "block",
-                                marginLeft: "auto",
-                                marginRight: "auto",
-                                marginTop: "-5px",
-                              }}
                             ></div>
                           ) : (
                             "Save"
@@ -313,5 +290,4 @@ const SettingsPane = () => {
     </div>
   );
 };
-
-export default SettingsPane;
+export default SettingsPanel;

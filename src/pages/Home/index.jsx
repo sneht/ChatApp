@@ -4,22 +4,20 @@ import { Link } from "react-router-dom";
 import Avatar from "react-avatar";
 import Modal from "react-bootstrap/Modal";
 import SideBar from "../../components/SideBar/index";
-import MessagePane from "../../components/MessagePane";
-import { data } from "../../helper";
-import { getUsersList, groupList } from "../../components/auth.request";
+import MessagePanel from "../../components/MessagePanel";
+import { groupBody, userBody } from "../../utils/helper";
+import { getUsersList, groupList } from "../../service/auth.request";
 import CreateGroupModal from "../../components/CreateGroupModal";
-import ProfilePane from "../../components/ProfilePane";
-import SettingsPane from "../../components/SettingsPane";
-import ContctPane from "../../components/ContactPane";
+import ProfilePanel from "../../components/ProfilePanel";
+import SettingsPanel from "../../components/SettingsPanel";
+import ContactPanel from "../../components/ContactPanel";
 import { GroupDetails } from "../../App";
 export const GroupList = createContext();
 
 const Home = () => {
   const details = useContext(GroupDetails);
-
   const [text, setText] = useState();
   const [textError, setTextError] = useState("");
-
   let loginUser = JSON.parse(localStorage.getItem("userData"));
 
   useEffect(() => {
@@ -35,6 +33,7 @@ const Home = () => {
     details.setGroupDesc(details.currentGroupDetails.groupDescription);
     details.setGroupImage(details.currentGroupDetails.groupImg);
   };
+
   const closeHandle = () => {
     details.setCloseModal(false);
     details.setGroupName("");
@@ -42,6 +41,7 @@ const Home = () => {
     details.setCheckedUser([]);
     details.setGroupImage("");
   };
+
   const sendButton = (e) => {
     e.preventDefault();
     let msgIsValid = true;
@@ -54,8 +54,40 @@ const Home = () => {
     }
     return msgIsValid;
   };
-  const getGroupList = async () => {
-    Promise.all([groupList(data), getUsersList(data)])
+
+  const getGroupList = async (groupLength, name) => {
+    Promise.all([
+      groupList(
+        groupBody({
+          where: {
+            isActive: true,
+          },
+          rowsPerPage:
+            name === "group"
+              ? groupLength
+                ? groupLength
+                : details.groupLength
+              : details.groupLength,
+          sortBy: "createdAt",
+          page: 1,
+        })
+      ),
+      getUsersList(
+        userBody({
+          where: {
+            isActive: true,
+          },
+          rowsPerPage:
+            name === "user"
+              ? groupLength
+                ? groupLength
+                : details.userListLength
+              : details.userListLength,
+          sortBy: "createdAt",
+          page: 1,
+        })
+      ),
+    ])
       .then((response) => {
         details.setResponseMessage("");
         details.setUserLoader(false);
@@ -84,10 +116,11 @@ const Home = () => {
         }
       })
       .catch((err) => {
-        details.setResponseMessage("Somthing Went Wrong");
         details.setUserLoader(false);
+        details.setResponseMessage("Somthing Went Wrong");
       });
   };
+
   return (
     <div>
       <div className="layout-wrapper d-lg-flex">
@@ -96,10 +129,10 @@ const Home = () => {
         </div>
         <div className="chat-leftsidebar">
           <div className="tab-content">
-            <ProfilePane />
-            <MessagePane />
-            <ContctPane />
-            <SettingsPane />
+            <ProfilePanel />
+            <MessagePanel getGroupList={getGroupList} />
+            <ContactPanel />
+            <SettingsPanel />
           </div>
         </div>
 
@@ -117,9 +150,7 @@ const Home = () => {
                               <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
                                 <img
                                   src={`${
-                                    details.groupImage
-                                      ? details.groupImage
-                                      : details.currentGroupDetails.userImg
+                                    details.currentGroupDetails.userImg
                                       ? details.currentGroupDetails.userImg
                                       : details.currentGroupDetails.groupImg
                                   }`}
@@ -229,7 +260,11 @@ const Home = () => {
                                 setTextError(""),
                               ]}
                             />
-                            <div className="error">{textError}</div>
+                            {textError ? (
+                              <div className="error">{textError}</div>
+                            ) : (
+                              ""
+                            )}
                           </div>
                         </div>
                         <div className="col-auto">
@@ -238,7 +273,6 @@ const Home = () => {
                               <button
                                 type="submit"
                                 className="btn btn-primary btn-lg chat-send waves-effect waves-light"
-                                // onSubmit={() => sendButton()}
                               >
                                 <i
                                   className="bx bxs-send align-middle"
@@ -259,7 +293,7 @@ const Home = () => {
               <div>
                 <Avatar name={loginUser.userName[0]} size="50" round="30px" />
               </div>
-              <div>{`Welcome! ${
+              <div>{`Welcome, ${
                 details.userName ? details.userName : loginUser.userName
               }`}</div>
               <div className="d-flex">
@@ -267,14 +301,13 @@ const Home = () => {
                   <img
                     src="/images/skype/landing_page_meet_now.png"
                     className="firstImg"
-                    style={{ width: "96%" }}
                     alt=""
                   />
                 </div>
                 <div>
                   <img
                     src="/images/skype/landing_page_whats_new.png"
-                    style={{ width: "100%" }}
+                    className="secondImg"
                     alt=""
                   />
                 </div>
