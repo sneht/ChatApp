@@ -166,9 +166,15 @@ const Login = () => {
                     <div className="col-sm-8 col-lg-6 col-xl-6">
                       <div className="py-md-5 py-4">
                         <div className="text-center mb-5">
-                          <h3>Welcome Back !</h3>
+                          <h3>
+                            {forgotPasswordShow
+                              ? "Change Password"
+                              : "Welcome Back !"}
+                          </h3>
                           <p className="text-muted">
-                            Sign in to continue to Chat-App.
+                            {forgotPasswordShow
+                              ? ""
+                              : "Sign in to continue to Chat-App."}
                           </p>
                         </div>
                         <form
